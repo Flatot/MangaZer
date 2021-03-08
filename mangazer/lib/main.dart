@@ -35,8 +35,9 @@ class _MyHomePageState extends State<MyHomePage> {
   List<dynamic> listManga = [];
 
   _updateListManga(query) async {
-    final response =
-        await http.get('https://wwv.scan-1.com/search?query=${query}');
+    final response = await http.get(
+      Uri.https('wwv.scan-1.com', '/search', {"query": query}),
+    );
     if (response.statusCode == 200) {
       setState(() {
         listManga = json.decode(response.body)["suggestions"];
