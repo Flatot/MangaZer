@@ -92,8 +92,6 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
   }
 
   changePage() async {
-    print(_selectedPage);
-    print(_listPage.length.toString());
     if (_selectedPage < _listPage.length) {
       _selectedPage++;
     } else {

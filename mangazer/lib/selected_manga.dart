@@ -82,6 +82,10 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
     if (listString == null) listString = [];
     listString.add(_listLink[index]["attributes"]["href"]);
     setSP(widget.selectedManga["data"], listString);
+
+    setState(() {
+      _listChapters[index]["viewed"] = true;
+    });
   }
 
   @override
@@ -115,10 +119,16 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
                     child: Padding(
                       padding:
                           EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-                      child: GestureDetector(
-                        onHorizontalDragEnd: (details) {
-                          _addToViewed(index);
+                      child: Dismissible(
+                        confirmDismiss: (direction) async {
+                          if (direction == DismissDirection.startToEnd) {
+                            _addToViewed(index);
+                            return false;
+                          } else if (direction == DismissDirection.endToStart) {
+                            return false;
+                          }
                         },
+                        key: UniqueKey(),
                         child: ListTile(
                           trailing: (_listChapters[index]["viewed"] != null &&
                                   _listChapters[index]["viewed"] == true)
