@@ -1,8 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'package:mangazer/selected_manga.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(MyApp());
 
@@ -11,8 +13,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'MangaZer',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: Colors.green[700],
+        brightness: Brightness.dark,
       ),
       home: MyHomePage(title: 'MangaZer'),
     );
@@ -59,6 +63,12 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _updateListManga("");
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -71,10 +81,14 @@ class _MyHomePageState extends State<MyHomePage> {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                child: TextFormField(
-                  controller: _mangaSearch,
-                  onChanged: _updateListManga,
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Container(
+                  child: TextFormField(
+                    controller: _mangaSearch,
+                    onChanged: _updateListManga,
+                    decoration: InputDecoration(hintText: "Recherche un manga"),
+                  ),
                 ),
               ),
               Expanded(
@@ -86,17 +100,28 @@ class _MyHomePageState extends State<MyHomePage> {
                           _selectManga(listManga[index]);
                         },
                         child: Padding(
-                          padding: EdgeInsets.symmetric(
-                              vertical: 8.0, horizontal: 4.0),
-                          child: Text(
-                            listManga[index]["value"],
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        ),
+                            padding: EdgeInsets.symmetric(
+                                vertical: 8.0, horizontal: 4.0),
+                            child: Row(
+                              children: [
+                                Image.network(
+                                  "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
+                                  height:
+                                      MediaQuery.of(context).size.height / 5,
+                                ),
+                                SizedBox(
+                                  width: 25,
+                                ),
+                                Text(
+                                  listManga[index]["value"],
+                                  style: TextStyle(fontSize: 18),
+                                ),
+                              ],
+                            )),
                       );
                     },
                     itemCount: listManga.length),
-              ),
+              )
             ],
           ),
           Center(

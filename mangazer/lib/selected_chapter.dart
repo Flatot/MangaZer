@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:photo_view/photo_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:web_scraper/web_scraper.dart';
 
@@ -55,7 +57,6 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
     var page = (_selectedPage >= 1 && _selectedPage <= 9)
         ? "0" + _selectedPage.toString()
         : _selectedPage;
-    print("uploads/manga/$manga/chapters/$chapter/$page.jpg");
 
     final response = await http.head(Uri.https(
         "wwv.scan-1.com", "/uploads/manga/$manga/chapters/$chapter/$page.jpg"));
@@ -79,9 +80,36 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
     }
   }
 
-  changePage() {
-    if (_selectedPage < _listPage.length)
+  getSP(pref) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var value = prefs.get(pref);
+    return value;
+  }
+
+  setSP(String key, List<String> value) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setStringList(key, value);
+  }
+
+  changePage() async {
+    print(_selectedPage);
+    print(_listPage.length.toString());
+    if (_selectedPage < _listPage.length) {
       _selectedPage++;
+    } else {
+      List<String> listString = await getSP(widget.selectedManga["data"]);
+      if (listString == null) listString = [];
+      listString.add(widget.chapterLink["attributes"]["href"]);
+      setSP(widget.selectedManga["data"], listString);
+      Navigator.pop(context);
+      return;
+    }
+    getImage();
+  }
+
+  prevPage() {
+    if (_selectedPage > 1)
+      _selectedPage--;
     else {
       Navigator.pop(context);
       return;
@@ -91,50 +119,33 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
 
   @override
   Widget build(BuildContext context) {
+    String swipeDirection;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.selectedManga["value"]),
       ),
       body: Column(
         children: [
-          // Container(
-          //   child: ElevatedButton(
-          //     onPressed: loadChapterData,
-          //     child: Text("LOAD"),
-          //   ),
-          // ),
-          // Container(
-          //   height: 50,
-          //   width: MediaQuery.of(context).size.width / 2,
-          //   child: Expanded(
-          //     child: ListView.builder(
-          //         shrinkWrap: true,
-          //         scrollDirection: Axis.horizontal,
-          //         itemBuilder: (BuildContext context, int index) {
-          //           return GestureDetector(
-          //             onTap: () {
-          //               // _selectChapter(_listChapters[index], _listLink[index]);
-          //             },
-          //             child: Padding(
-          //               padding: EdgeInsets.symmetric(
-          //                   vertical: 8.0, horizontal: 4.0),
-          //               child: Text(
-          //                 _listPage[index],
-          //                 style: TextStyle(fontSize: 18),
-          //               ),
-          //             ),
-          //           );
-          //         },
-          //         itemCount: _listPage != null ? _listPage.length : 0),
-          //   ),
-          // ),
           Expanded(
             child: GestureDetector(
               onTap: () {
                 changePage();
               },
+              onHorizontalDragUpdate: (details) {
+                swipeDirection = details.primaryDelta < 0 ? 'left' : 'right';
+              },
+              onHorizontalDragEnd: (details) {
+                if (swipeDirection == 'left') {
+                  changePage();
+                }
+                if (swipeDirection == 'right') {
+                  prevPage();
+                }
+              },
               child: _currentImage != null
-                  ? Image.network(_currentImage)
+                  ? PhotoView(
+                      imageProvider: NetworkImage(_currentImage),
+                    )
                   : Text("Not founded"),
             ),
           ),

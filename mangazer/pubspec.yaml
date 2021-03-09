@@ -25,6 +25,9 @@ dependencies:
   cupertino_icons: ^0.1.2
   http: ^0.13.0
   web_scraper:  ^0.1.4
+  flutter_spinkit: ^4.1.2
+  photo_view: ^0.11.0
+  shared_preferences: ^2.0.3 
 
 dev_dependencies:
   flutter_test:
