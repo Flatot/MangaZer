@@ -5,6 +5,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'package:mangazer/selected_manga.dart';
 import 'package:mangazer/settings.dart';
+import 'package:mangazer/viewed.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(MyApp());
@@ -133,8 +134,8 @@ class _MyHomePageState extends State<MyHomePage> {
               )
             ],
           ),
-          SettingsPage(
-            title: "Paramètres",
+          ViewedPage(
+            title: "En cours",
           ),
           SettingsPage(
             title: "Paramètres",
