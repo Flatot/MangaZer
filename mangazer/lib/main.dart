@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'package:mangazer/selected_manga.dart';
+import 'package:mangazer/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(MyApp());
@@ -132,11 +133,12 @@ class _MyHomePageState extends State<MyHomePage> {
               )
             ],
           ),
-          Center(
-            child: Container(
-              child: Text('Empty Body 1'),
-            ),
+          SettingsPage(
+            title: "Paramètres",
           ),
+          SettingsPage(
+            title: "Paramètres",
+          )
         ],
       ),
       bottomNavigationBar: BottomAppBar(
@@ -164,6 +166,16 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: () {
                   setState(() {
                     _myPage.jumpToPage(1);
+                  });
+                },
+              ),
+              IconButton(
+                iconSize: 30.0,
+                padding: EdgeInsets.only(right: 28.0),
+                icon: Icon(Icons.settings),
+                onPressed: () {
+                  setState(() {
+                    _myPage.jumpToPage(2);
                   });
                 },
               ),

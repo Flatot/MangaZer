@@ -24,6 +24,8 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
   List<String> _listPage;
   int _selectedPage = 1;
   String _currentImage = "";
+  List<String> listImages = [];
+  int currentMode = 0;
 
   @override
   void initState() {
@@ -31,6 +33,14 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
 
     loadChapterData();
     getImage();
+    getSettings();
+  }
+
+  getSettings() async {
+    currentMode = await getSPInt("mode");
+    setState(() {
+      currentMode = currentMode;
+    });
   }
 
   loadChapterData() async {
@@ -80,9 +90,38 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
     }
   }
 
-  getSP(pref) async {
+  getImageFromIndex(index) async {
+    var route = widget.chapterLink["attributes"]["href"];
+    route = route.split("https://wwv.scan-1.com")[1];
+    var manga = route.split("/")[1];
+    var chapter = route.split("/")[2];
+    var page = (index >= 1 && index <= 9) ? "0" + index.toString() : index;
+
+    final response = await http.head(Uri.https(
+        "wwv.scan-1.com", "/uploads/manga/$manga/chapters/$chapter/$page.jpg"));
+
+    if (response.statusCode == 200) {
+      return "https://wwv.scan-1.com/uploads/manga/$manga/chapters/$chapter/$page.jpg";
+    } else {
+      final responsePng = await http.head(Uri.https("wwv.scan-1.com",
+          "/uploads/manga/$manga/chapters/$chapter/$page.png"));
+      if (responsePng.statusCode == 200) {
+        return "https://wwv.scan-1.com/uploads/manga/$manga/chapters/$chapter/$page.png";
+      } else {
+        return null;
+      }
+    }
+  }
+
+  getSPInt(pref) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var value = prefs.get(pref);
+    int value = prefs.getInt(pref);
+    return value;
+  }
+
+  Future<List<String>> getSP(pref) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> value = prefs.getStringList(pref);
     return value;
   }
 
@@ -119,36 +158,76 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
   Widget build(BuildContext context) {
     String swipeDirection;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.selectedManga["value"]),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                changePage();
-              },
-              onHorizontalDragUpdate: (details) {
-                swipeDirection = details.primaryDelta < 0 ? 'left' : 'right';
-              },
-              onHorizontalDragEnd: (details) {
-                if (swipeDirection == 'left') {
+        appBar: AppBar(
+          title: Text(widget.selectedManga["value"]),
+        ),
+        body:
+            // currentMode == 0
+            // ?
+            Column(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
                   changePage();
-                }
-                if (swipeDirection == 'right') {
-                  prevPage();
-                }
-              },
-              child: _currentImage != null
-                  ? PhotoView(
-                      imageProvider: NetworkImage(_currentImage),
-                    )
-                  : Text("Not founded"),
+                },
+                onHorizontalDragUpdate: (details) {
+                  swipeDirection = details.primaryDelta < 0 ? 'left' : 'right';
+                },
+                onHorizontalDragEnd: (details) {
+                  if (swipeDirection == 'left') {
+                    changePage();
+                  }
+                  if (swipeDirection == 'right') {
+                    prevPage();
+                  }
+                },
+                child: _currentImage != null
+                    ? PhotoView(
+                        imageProvider: NetworkImage(_currentImage),
+                      )
+                    : Text("Not founded"),
+              ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        )
+        // : ListView.builder(
+        //     itemCount: _listPage != null ? _listPage.length : 0,
+        //     itemBuilder: (BuildContext context, int index) {
+        //       // listImages.add(_currentImage);
+        //       return FutureBuilder<Widget>(
+        //           future: getImageFromIndex(index),
+        //           builder:
+        //               (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+        //             if (snapshot.hasData) {
+        //               print(snapshot.data);
+        //               return Text("test");
+        //               // return PhotoView(
+        //               //   imageProvider: NetworkImage(snapshot.data[index]),
+        //               // );
+        //             }
+        //             return Container(child: CircularProgressIndicator());
+        //           });
+        //     },
+        //   ),
+        // : ListView(
+        //     children: [
+        //       FutureBuilder<Widget>(
+        //         future: getImageFromIndex(0),
+        //         builder:
+        //             (BuildContext context, AsyncSnapshot<Widget> snapshot) {
+        //           if (snapshot.hasData) {
+        //             print(snapshot.data);
+        //             return Text("test");
+        //             // return PhotoView(
+        //             //   imageProvider: NetworkImage(snapshot.data[index]),
+        //             // );
+        //           }
+        //           return Container(child: CircularProgressIndicator());
+        //         },
+        //       ),
+        //     ],
+        //   ),
+        );
   }
 }

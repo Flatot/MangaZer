@@ -29,7 +29,7 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
 
   getSP(pref) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var value = prefs.get(pref);
+    List<String> value = prefs.getStringList(pref);
     return value;
   }
 
@@ -60,16 +60,20 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
     }
   }
 
-  _selectChapter(elem, link) {
+  _selectChapter(index, _listChapters, _listLink) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => SelectedChapterPage(
             selectedManga: widget.selectedManga,
-            selectedChapter: elem,
-            chapterLink: link),
+            selectedChapter: _listChapters[index],
+            chapterLink: _listLink[index]),
       ),
-    );
+    ).then((value) {
+      setState(() {
+        _listChapters[index]["viewed"] = true;
+      });
+    });
   }
 
   setSP(String key, List<String> value) async {
@@ -114,7 +118,7 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
                 itemBuilder: (BuildContext context, int index) {
                   return GestureDetector(
                     onTap: () {
-                      _selectChapter(_listChapters[index], _listLink[index]);
+                      _selectChapter(index, _listChapters, _listLink);
                     },
                     child: Padding(
                       padding:
