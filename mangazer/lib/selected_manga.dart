@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:mangazer/download_chapter.dart';
 import 'package:mangazer/selected_chapter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -70,9 +71,11 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
             chapterLink: _listLink[index]),
       ),
     ).then((value) {
-      setState(() {
-        _listChapters[index]["viewed"] = true;
-      });
+      if (value) {
+        setState(() {
+          _listChapters[index]["viewed"] = true;
+        });
+      }
     });
   }
 
@@ -90,6 +93,18 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
     setState(() {
       _listChapters[index]["viewed"] = true;
     });
+  }
+
+  _downloadChapter(index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DownloadChapterPage(
+            selectedManga: widget.selectedManga,
+            selectedChapter: _listChapters[index],
+            chapterLink: _listLink[index]),
+      ),
+    );
   }
 
   @override
@@ -142,6 +157,13 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
                           title: Text(
                             _listChapters[index]["title"],
                             style: TextStyle(fontSize: 18),
+                          ),
+                          leading: IconButton(
+                            icon: Icon(Icons.download_rounded),
+                            color: Theme.of(context).primaryColor,
+                            onPressed: () {
+                              _downloadChapter(index);
+                            },
                           ),
                         ),
                       ),

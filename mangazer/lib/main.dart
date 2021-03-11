@@ -152,7 +152,7 @@ class _MyHomePageState extends State<MyHomePage> {
             children: <Widget>[
               IconButton(
                 iconSize: 30.0,
-                padding: EdgeInsets.only(left: 28.0),
+                padding: EdgeInsets.only(left: 56.0),
                 icon: Icon(Icons.search),
                 onPressed: () {
                   setState(() {
@@ -162,8 +162,8 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               IconButton(
                 iconSize: 30.0,
-                padding: EdgeInsets.only(right: 28.0),
-                icon: Icon(Icons.file_download),
+                // padding: EdgeInsets.only(right: 28.0),
+                icon: Icon(Icons.menu_book),
                 onPressed: () {
                   setState(() {
                     _myPage.jumpToPage(1);
@@ -172,7 +172,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               IconButton(
                 iconSize: 30.0,
-                padding: EdgeInsets.only(right: 28.0),
+                padding: EdgeInsets.only(right: 56.0),
                 icon: Icon(Icons.settings),
                 onPressed: () {
                   setState(() {

@@ -138,7 +138,7 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
       if (listString == null) listString = [];
       listString.add(widget.chapterLink["attributes"]["href"]);
       setSP(widget.selectedManga["data"], listString);
-      Navigator.pop(context);
+      Navigator.pop(context, true);
       return;
     }
     getImage();
