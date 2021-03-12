@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
+import 'package:mangazer/downloaded.dart';
 import 'package:mangazer/selected_manga.dart';
 import 'package:mangazer/settings.dart';
 import 'package:mangazer/viewed.dart';
@@ -137,6 +138,9 @@ class _MyHomePageState extends State<MyHomePage> {
           ViewedPage(
             title: "En cours",
           ),
+          DownloadedPage(
+            title: "Téléchargé",
+          ),
           SettingsPage(
             title: "Paramètres",
           )
@@ -172,11 +176,21 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               IconButton(
                 iconSize: 30.0,
+                // padding: EdgeInsets.only(right: 56.0),
+                icon: Icon(Icons.download_rounded),
+                onPressed: () {
+                  setState(() {
+                    _myPage.jumpToPage(2);
+                  });
+                },
+              ),
+              IconButton(
+                iconSize: 30.0,
                 padding: EdgeInsets.only(right: 56.0),
                 icon: Icon(Icons.settings),
                 onPressed: () {
                   setState(() {
-                    _myPage.jumpToPage(2);
+                    _myPage.jumpToPage(3);
                   });
                 },
               ),
