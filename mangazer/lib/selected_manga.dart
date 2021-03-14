@@ -1,7 +1,8 @@
-import 'dart:convert';
+import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:mangazer/download_chapter.dart';
 import 'package:mangazer/selected_chapter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,6 +21,7 @@ class SelectedMangaPage extends StatefulWidget {
 class _SelectedMangaPageState extends State<SelectedMangaPage> {
   List<Map<String, dynamic>> _listChapters;
   List<Map<String, dynamic>> _listLink;
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -35,6 +37,7 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
   }
 
   loadDataScan1() async {
+    var lastViewedChapter = 0;
     final webScraper = WebScraper('https://wwv.scan-1.com');
     if (await webScraper.loadWebPage('/${widget.selectedManga["data"]}')) {
       _listChapters = webScraper.getElement('.chapters li > h5', []);
@@ -58,6 +61,18 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
         _listChapters = _listChapters.reversed.toList();
         _listLink = _listLink.reversed.toList();
       });
+      // CHECK LAST VIEWED CHAPTER
+      for (var i = 0; i < _listChapters.length; i++) {
+        if (lastViewedChapter == 0 && _listChapters[i]["viewed"] != true) {
+          lastViewedChapter = i;
+        }
+      }
+      // AUTO SCROLL TO LAST VIEWED
+      _scrollController.animateTo(
+        ((lastViewedChapter * 70).toDouble()),
+        curve: Curves.easeOut,
+        duration: const Duration(milliseconds: 300),
+      );
     }
   }
 
@@ -71,7 +86,7 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
             chapterLink: _listLink[index]),
       ),
     ).then((value) {
-      if (value) {
+      if (value == true) {
         setState(() {
           _listChapters[index]["viewed"] = true;
         });
@@ -84,15 +99,97 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
     prefs.setStringList(key, value);
   }
 
+  setPreviousChapterToViewed(index) async {
+    List<String> listString = await getSP(widget.selectedManga["data"]);
+    if (listString == null) listString = [];
+    for (var i = 0; i <= index; i++) {
+      listString.add(_listLink[i]["attributes"]["href"]);
+      _listChapters[i]["viewed"] = true;
+    }
+    setSP(widget.selectedManga["data"], listString);
+    setState(() {
+      _listChapters = _listChapters;
+    });
+  }
+
+  showDialogConfirmation(index) {
+    if (Platform.isIOS) {
+      showDialog(
+          context: context,
+          builder: (_) => CupertinoAlertDialog(
+                title: Text("Marquer les chapitres précédents"),
+                content: Text(
+                    "Voulez-vous marquer les chapitres précédents comme lus ?"),
+                actions: <Widget>[
+                  CupertinoDialogAction(
+                      child: Text(
+                        "Non",
+                        style: TextStyle(color: Theme.of(context).accentColor),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _listChapters[index]["viewed"] = true;
+                        });
+                        Navigator.of(context).pop();
+                      }),
+                  CupertinoDialogAction(
+                      child: Text("Oui",
+                          style: TextStyle(
+                              color: Theme.of(context).primaryColorLight)),
+                      onPressed: () {
+                        setPreviousChapterToViewed(index);
+                        Navigator.of(context).pop();
+                      })
+                ],
+              ));
+    } else {
+      showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+                title: Text("Marquer les chapitres précédents"),
+                content: Text(
+                    "Voulez-vous marquer les chapitres précédents comme lus ?"),
+                elevation: 24.0,
+                actions: <Widget>[
+                  TextButton(
+                      child: Text(
+                        "Non",
+                        style: TextStyle(color: Theme.of(context).accentColor),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _listChapters[index]["viewed"] = true;
+                        });
+                        Navigator.of(context).pop();
+                      }),
+                  TextButton(
+                      child: Text(
+                        "Oui",
+                        style: TextStyle(
+                            color: Theme.of(context).primaryColorLight),
+                      ),
+                      onPressed: () {
+                        setPreviousChapterToViewed(index);
+                        Navigator.of(context).pop();
+                      })
+                ],
+              ));
+    }
+  }
+
   _addToViewed(index) async {
     List<String> listString = await getSP(widget.selectedManga["data"]);
     if (listString == null) listString = [];
     listString.add(_listLink[index]["attributes"]["href"]);
     setSP(widget.selectedManga["data"], listString);
 
-    setState(() {
-      _listChapters[index]["viewed"] = true;
-    });
+    if (_listChapters[index - 1]["viewed"] != true) {
+      showDialogConfirmation(index);
+    } else {
+      setState(() {
+        _listChapters[index]["viewed"] = true;
+      });
+    }
   }
 
   _downloadChapter(index) {
@@ -130,7 +227,18 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
           Expanded(
             child: ListView.builder(
                 shrinkWrap: true,
+                controller: _scrollController,
                 itemBuilder: (BuildContext context, int index) {
+                  if (_listChapters == null) {
+                    return Container(
+                      height: MediaQuery.of(context).size.height - 60,
+                      width: MediaQuery.of(context).size.width,
+                      child: Center(
+                        child: SpinKitDoubleBounce(
+                            color: Theme.of(context).primaryColor),
+                      ),
+                    );
+                  }
                   return GestureDetector(
                     onTap: () {
                       _selectChapter(index, _listChapters, _listLink);
@@ -170,7 +278,7 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
                     ),
                   );
                 },
-                itemCount: _listChapters != null ? _listChapters.length : 0),
+                itemCount: _listChapters != null ? _listChapters.length : 1),
           ),
         ],
       ),

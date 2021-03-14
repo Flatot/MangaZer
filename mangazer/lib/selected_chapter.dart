@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:photo_view/photo_view.dart';
@@ -158,76 +156,36 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
   Widget build(BuildContext context) {
     String swipeDirection;
     return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.selectedManga["value"]),
-        ),
-        body:
-            // currentMode == 0
-            // ?
-            Column(
-          children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
+      appBar: AppBar(
+        title: Text(widget.selectedManga["value"]),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                changePage();
+              },
+              onHorizontalDragUpdate: (details) {
+                swipeDirection = details.primaryDelta < 0 ? 'left' : 'right';
+              },
+              onHorizontalDragEnd: (details) {
+                if (swipeDirection == 'left') {
                   changePage();
-                },
-                onHorizontalDragUpdate: (details) {
-                  swipeDirection = details.primaryDelta < 0 ? 'left' : 'right';
-                },
-                onHorizontalDragEnd: (details) {
-                  if (swipeDirection == 'left') {
-                    changePage();
-                  }
-                  if (swipeDirection == 'right') {
-                    prevPage();
-                  }
-                },
-                child: _currentImage != null
-                    ? PhotoView(
-                        imageProvider: NetworkImage(_currentImage),
-                      )
-                    : Text("Not founded"),
-              ),
+                }
+                if (swipeDirection == 'right') {
+                  prevPage();
+                }
+              },
+              child: _currentImage != null
+                  ? PhotoView(
+                      imageProvider: NetworkImage(_currentImage),
+                    )
+                  : Text("Not founded"),
             ),
-          ],
-        )
-        // : ListView.builder(
-        //     itemCount: _listPage != null ? _listPage.length : 0,
-        //     itemBuilder: (BuildContext context, int index) {
-        //       // listImages.add(_currentImage);
-        //       return FutureBuilder<Widget>(
-        //           future: getImageFromIndex(index),
-        //           builder:
-        //               (BuildContext context, AsyncSnapshot<Widget> snapshot) {
-        //             if (snapshot.hasData) {
-        //               print(snapshot.data);
-        //               return Text("test");
-        //               // return PhotoView(
-        //               //   imageProvider: NetworkImage(snapshot.data[index]),
-        //               // );
-        //             }
-        //             return Container(child: CircularProgressIndicator());
-        //           });
-        //     },
-        //   ),
-        // : ListView(
-        //     children: [
-        //       FutureBuilder<Widget>(
-        //         future: getImageFromIndex(0),
-        //         builder:
-        //             (BuildContext context, AsyncSnapshot<Widget> snapshot) {
-        //           if (snapshot.hasData) {
-        //             print(snapshot.data);
-        //             return Text("test");
-        //             // return PhotoView(
-        //             //   imageProvider: NetworkImage(snapshot.data[index]),
-        //             // );
-        //           }
-        //           return Container(child: CircularProgressIndicator());
-        //         },
-        //       ),
-        //     ],
-        //   ),
-        );
+          ),
+        ],
+      ),
+    );
   }
 }

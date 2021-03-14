@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -7,7 +8,7 @@ import 'package:mangazer/downloaded.dart';
 import 'package:mangazer/selected_manga.dart';
 import 'package:mangazer/settings.dart';
 import 'package:mangazer/viewed.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:splashscreen/splashscreen.dart';
 
 void main() => runApp(MyApp());
 
@@ -15,13 +16,71 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'MangaZer',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: Colors.green[700],
-        brightness: Brightness.dark,
+        title: 'MangaZer',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primaryColor: Colors.green[700],
+          primaryColorLight: Colors.green[400],
+          accentColor: Colors.grey,
+          brightness: Brightness.dark,
+        ),
+        home: CustomSplashScreen());
+  }
+}
+
+class CustomSplashScreen extends StatefulWidget {
+  CustomSplashScreen({Key key, this.title}) : super(key: key);
+
+  final String title;
+
+  @override
+  _CustomSplashScreenState createState() => _CustomSplashScreenState();
+}
+
+class _CustomSplashScreenState extends State<CustomSplashScreen> {
+  final timeout = Duration(seconds: 2);
+  final ms = Duration(milliseconds: 1);
+
+  void handleTimeout() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => MyHomePage(title: 'MangaZer'),
       ),
-      home: MyHomePage(title: 'MangaZer'),
+    );
+  }
+
+  Timer startTimeout([int milliseconds]) {
+    var duration = milliseconds == null ? timeout : ms * milliseconds;
+    return Timer(duration, handleTimeout);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    startTimeout();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            minRadius: 150,
+            maxRadius: 250,
+            backgroundImage: AssetImage("assets/splash_screen.png"),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.0),
+            child: Text("MangaZer",
+                style: Theme.of(context)
+                    .textTheme
+                    .headline2
+                    .copyWith(color: Theme.of(context).primaryColor)),
+          )
+        ],
+      ),
     );
   }
 }
@@ -39,7 +98,7 @@ class _MyHomePageState extends State<MyHomePage> {
   PageController _myPage = PageController(initialPage: 0);
   TextEditingController _mangaSearch = TextEditingController();
   dynamic mangaSelected;
-  List<dynamic> listManga = [];
+  List<dynamic> listManga = null;
 
   _updateListManga(query) async {
     final response = await http.get(
@@ -102,37 +161,42 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
               ),
-              Expanded(
-                child: ListView.builder(
-                    shrinkWrap: true,
-                    itemBuilder: (BuildContext context, int index) {
-                      return GestureDetector(
-                        onTap: () {
-                          _selectManga(listManga[index]);
-                        },
-                        child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 8.0, horizontal: 4.0),
-                            child: Row(
-                              children: [
-                                Image.network(
-                                  "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
-                                  height:
-                                      MediaQuery.of(context).size.height / 5,
-                                ),
-                                SizedBox(
-                                  width: 25,
-                                ),
-                                Text(
-                                  listManga[index]["value"],
-                                  style: TextStyle(fontSize: 18),
-                                ),
-                              ],
-                            )),
-                      );
-                    },
-                    itemCount: listManga.length),
-              )
+              listManga != null
+                  ? Expanded(
+                      child: ListView.builder(
+                          shrinkWrap: true,
+                          itemBuilder: (BuildContext context, int index) {
+                            return GestureDetector(
+                              onTap: () {
+                                _selectManga(listManga[index]);
+                              },
+                              child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 8.0, horizontal: 4.0),
+                                  child: Row(
+                                    children: [
+                                      Image.network(
+                                        "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
+                                        height:
+                                            MediaQuery.of(context).size.height /
+                                                5,
+                                      ),
+                                      SizedBox(
+                                        width: 25,
+                                      ),
+                                      Text(
+                                        listManga[index]["value"],
+                                        style: TextStyle(fontSize: 18),
+                                      ),
+                                    ],
+                                  )),
+                            );
+                          },
+                          itemCount: listManga.length),
+                    )
+                  : Center(
+                      child: SpinKitDoubleBounce(
+                          color: Theme.of(context).primaryColor)),
             ],
           ),
           ViewedPage(
