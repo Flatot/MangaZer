@@ -65,17 +65,15 @@ class _ViewedPageState extends State<ViewedPage> {
               onTap: () {
                 _selectManga(listManga[index]);
               },
-              child: Card(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-                  child: Column(
-                    children: [
-                      Image.network(
-                        "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
-                        height: MediaQuery.of(context).size.height / 3,
-                      ),
-                    ],
-                  ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                child: Column(
+                  children: [
+                    Image.network(
+                      "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
+                      height: MediaQuery.of(context).size.height / 3,
+                    ),
+                  ],
                 ),
               ),
             );

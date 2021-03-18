@@ -21,6 +21,7 @@ class SelectedMangaPage extends StatefulWidget {
 class _SelectedMangaPageState extends State<SelectedMangaPage> {
   List<Map<String, dynamic>> _listChapters;
   List<Map<String, dynamic>> _listLink;
+  String _resume;
   final _scrollController = ScrollController();
 
   @override
@@ -40,8 +41,10 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
     var lastViewedChapter = 0;
     final webScraper = WebScraper('https://wwv.scan-1.com');
     if (await webScraper.loadWebPage('/${widget.selectedManga["data"]}')) {
+      var _resumeElement = webScraper.getElement('.well > p', []);
       _listChapters = webScraper.getElement('.chapters li > h5', []);
       _listLink = webScraper.getElement('.chapter-title-rtl a', ['href']);
+      _resume = _resumeElement[0]["title"];
 
       for (var i = 0; i < _listChapters.length; i++) {
         _listChapters[i]["title"] = _listChapters[i]["title"].trim();
@@ -69,7 +72,7 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
       }
       // AUTO SCROLL TO LAST VIEWED
       _scrollController.animateTo(
-        ((lastViewedChapter * 70).toDouble()),
+        ((lastViewedChapter * 63).toDouble()),
         curve: Curves.easeOut,
         duration: const Duration(milliseconds: 300),
       );

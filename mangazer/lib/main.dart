@@ -63,23 +63,25 @@ class _CustomSplashScreenState extends State<CustomSplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircleAvatar(
-            minRadius: 150,
-            maxRadius: 250,
-            backgroundImage: AssetImage("assets/splash_screen.png"),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.0),
-            child: Text("MangaZer",
-                style: Theme.of(context)
-                    .textTheme
-                    .headline2
-                    .copyWith(color: Theme.of(context).primaryColor)),
-          )
-        ],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              minRadius: 150,
+              maxRadius: 250,
+              backgroundImage: AssetImage("assets/splash_screen.png"),
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 8.0),
+              child: Text("MangaZer",
+                  style: Theme.of(context)
+                      .textTheme
+                      .headline2
+                      .copyWith(color: Theme.of(context).primaryColor)),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -158,8 +160,15 @@ class _MyHomePageState extends State<MyHomePage> {
                     onChanged: _updateListManga,
                     decoration: InputDecoration(
                         prefixIcon: Icon(Icons.search),
-                        hintText: "Recherche un manga"),
+                        hintText: "Search a manga"),
                   ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(left: 8, right: 8, top: 24, bottom: 0),
+                child: Text(
+                  "Top manga",
+                  style: Theme.of(context).textTheme.headline6,
                 ),
               ),
               listManga != null
@@ -208,7 +217,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       child: SpinKitDoubleBounce(
                           color: Theme.of(context).primaryColor)),
               Padding(
-                padding: EdgeInsets.only(left: 8, right: 8, top: 24, bottom: 8),
+                padding: EdgeInsets.only(left: 8, right: 8, top: 24, bottom: 0),
                 child: Text(
                   "In progress",
                   style: Theme.of(context).textTheme.headline6,
