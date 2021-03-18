@@ -141,15 +141,14 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
+      // appBar: AppBar(
+      //   title: Text(widget.title),
+      // ),
       body: PageView(
         controller: _myPage,
         onPageChanged: (int) {},
         children: <Widget>[
-          Column(
-            mainAxisSize: MainAxisSize.min,
+          ListView(
             children: [
               Padding(
                 padding: EdgeInsets.all(8.0),
@@ -157,39 +156,50 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: TextFormField(
                     controller: _mangaSearch,
                     onChanged: _updateListManga,
-                    decoration: InputDecoration(hintText: "Recherche un manga"),
+                    decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.search),
+                        hintText: "Recherche un manga"),
                   ),
                 ),
               ),
               listManga != null
-                  ? Expanded(
+                  ? SizedBox(
+                      height: (MediaQuery.of(context).size.height / 4) + 50,
                       child: ListView.builder(
                           shrinkWrap: true,
+                          scrollDirection: Axis.horizontal,
                           itemBuilder: (BuildContext context, int index) {
                             return GestureDetector(
                               onTap: () {
                                 _selectManga(listManga[index]);
                               },
                               child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 8.0, horizontal: 4.0),
-                                  child: Row(
-                                    children: [
-                                      Image.network(
-                                        "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
-                                        height:
-                                            MediaQuery.of(context).size.height /
-                                                5,
-                                      ),
-                                      SizedBox(
-                                        width: 25,
-                                      ),
-                                      Text(
-                                        listManga[index]["value"],
-                                        style: TextStyle(fontSize: 18),
-                                      ),
-                                    ],
-                                  )),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 4.0),
+                                child: Column(
+                                  children: [
+                                    Image.network(
+                                      "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
+                                      height:
+                                          (MediaQuery.of(context).size.height /
+                                                  4) +
+                                              30,
+                                    ),
+                                    // SizedBox(
+                                    //   height: 25,
+                                    // ),
+                                    // SizedBox(
+                                    //   width: 100,
+                                    //   child: Expanded(
+                                    //     child: Text(
+                                    //       listManga[index]["value"],
+                                    //       style: TextStyle(fontSize: 18),
+                                    //     ),
+                                    //   ),
+                                    // ),
+                                  ],
+                                ),
+                              ),
                             );
                           },
                           itemCount: listManga.length),
@@ -197,67 +207,100 @@ class _MyHomePageState extends State<MyHomePage> {
                   : Center(
                       child: SpinKitDoubleBounce(
                           color: Theme.of(context).primaryColor)),
+              Padding(
+                padding: EdgeInsets.only(left: 8, right: 8, top: 24, bottom: 8),
+                child: Text(
+                  "In progress",
+                  style: Theme.of(context).textTheme.headline6,
+                ),
+              ),
+              ViewedPage(
+                title: "En cours",
+              ),
             ],
-          ),
-          ViewedPage(
-            title: "En cours",
           ),
           DownloadedPage(
             title: "Téléchargé",
           ),
-          SettingsPage(
-            title: "Paramètres",
-          )
         ],
       ),
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),
         child: Container(
-          height: 75,
+          height: 70,
           child: Row(
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              IconButton(
-                iconSize: 30.0,
-                padding: EdgeInsets.only(left: 56.0),
-                icon: Icon(Icons.search),
-                onPressed: () {
-                  setState(() {
-                    _myPage.jumpToPage(0);
-                  });
-                },
+              SizedBox(
+                height: 75,
+                width: MediaQuery.of(context).size.width / 2,
+                child: Column(
+                  children: [
+                    IconButton(
+                      iconSize: 30.0,
+                      icon: _myPage.hasClients && _myPage.page == 0
+                          ? Icon(
+                              Icons.home,
+                              color: Theme.of(context).primaryColorLight,
+                            )
+                          : Icon(Icons.home),
+                      onPressed: () {
+                        setState(() {
+                          _myPage.jumpToPage(0);
+                        });
+                      },
+                    ),
+                    Text("Home")
+                  ],
+                ),
               ),
-              IconButton(
-                iconSize: 30.0,
-                // padding: EdgeInsets.only(right: 28.0),
-                icon: Icon(Icons.menu_book),
-                onPressed: () {
-                  setState(() {
-                    _myPage.jumpToPage(1);
-                  });
-                },
-              ),
-              IconButton(
-                iconSize: 30.0,
-                // padding: EdgeInsets.only(right: 56.0),
-                icon: Icon(Icons.download_rounded),
-                onPressed: () {
-                  setState(() {
-                    _myPage.jumpToPage(2);
-                  });
-                },
-              ),
-              IconButton(
-                iconSize: 30.0,
-                padding: EdgeInsets.only(right: 56.0),
-                icon: Icon(Icons.settings),
-                onPressed: () {
-                  setState(() {
-                    _myPage.jumpToPage(3);
-                  });
-                },
-              ),
+              // SizedBox(
+              //   height: 75,
+              //   width: MediaQuery.of(context).size.width / 2,
+              //   child: Column(
+              //     children: [
+              //       IconButton(
+              //         iconSize: 30.0,
+              //         icon: _myPage.hasClients && _myPage.page == 1
+              //             ? Icon(
+              //                 Icons.menu_book,
+              //                 color: Theme.of(context).primaryColorLight,
+              //               )
+              //             : Icon(Icons.menu_book),
+              //         onPressed: () {
+              //           setState(() {
+              //             _myPage.jumpToPage(1);
+              //           });
+              //         },
+              //       ),
+              //       Text("Reading")
+              //     ],
+              //   ),
+              // ),
+              SizedBox(
+                height: 75,
+                width: MediaQuery.of(context).size.width / 2,
+                child: Column(
+                  children: [
+                    IconButton(
+                      iconSize: 30.0,
+                      icon: _myPage.hasClients && _myPage.page == 1
+                          ? Icon(
+                              Icons.download_rounded,
+                              color: Theme.of(context).primaryColorLight,
+                            )
+                          : Icon(Icons.download_rounded),
+                      onPressed: () {
+                        setState(() {
+                          _myPage.jumpToPage(2);
+                        });
+                      },
+                    ),
+                    Text("Download")
+                  ],
+                ),
+              )
             ],
           ),
         ),

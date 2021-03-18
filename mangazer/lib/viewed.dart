@@ -55,49 +55,34 @@ class _ViewedPageState extends State<ViewedPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Expanded(
-            child:
-                // GridView.count(
-                //   crossAxisCount: 2,
-                //   children: [
-                ListView.builder(
-                    shrinkWrap: true,
-                    itemBuilder: (BuildContext context, int index) {
-                      return GestureDetector(
-                        onTap: () {
-                          _selectManga(listManga[index]);
-                        },
-                        child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 8.0, horizontal: 4.0),
-                            child: Row(
-                              children: [
-                                Image.network(
-                                  "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
-                                  height:
-                                      MediaQuery.of(context).size.height / 3,
-                                ),
-                                SizedBox(
-                                  width: 25,
-                                ),
-                                Text(
-                                  listManga[index]["value"],
-                                  style: TextStyle(fontSize: 18),
-                                ),
-                              ],
-                            )),
-                      );
-                    },
-                    itemCount: listManga.length),
-            //   ],
-            // ),
-          ),
-        ],
-      ),
+    return SizedBox(
+      height: (MediaQuery.of(context).size.height / 3) + 24,
+      child: ListView.builder(
+          shrinkWrap: true,
+          scrollDirection: Axis.horizontal,
+          itemBuilder: (BuildContext context, int index) {
+            return GestureDetector(
+              onTap: () {
+                _selectManga(listManga[index]);
+              },
+              child: Card(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                  child: Column(
+                    children: [
+                      Image.network(
+                        "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
+                        height: MediaQuery.of(context).size.height / 3,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+          itemCount: listManga.length),
+      //   ],
+      // ),
     );
   }
 }
