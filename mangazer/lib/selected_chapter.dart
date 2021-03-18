@@ -6,12 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_scraper/web_scraper.dart';
 
 class SelectedChapterPage extends StatefulWidget {
-  SelectedChapterPage(
-      {Key key, this.selectedManga, this.selectedChapter, this.chapterLink})
+  SelectedChapterPage({Key key, this.selectedManga, this.chapterLink})
       : super(key: key);
 
   final dynamic selectedManga;
-  final dynamic selectedChapter;
   final dynamic chapterLink;
 
   @override
@@ -156,12 +154,9 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
   Widget build(BuildContext context) {
     String swipeDirection;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.selectedManga["value"]),
-      ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
+          Container(
             child: GestureDetector(
               onTap: () {
                 changePage();
@@ -182,6 +177,20 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
                       imageProvider: NetworkImage(_currentImage),
                     )
                   : Text("Not founded"),
+            ),
+          ),
+          Positioned(
+            width: MediaQuery.of(context).size.width,
+            height: 80,
+            top: 10,
+            left: 0,
+            child: AppBar(
+              iconTheme: Theme.of(context)
+                  .iconTheme
+                  .copyWith(color: Theme.of(context).primaryColor),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              title: Text(''),
             ),
           ),
         ],

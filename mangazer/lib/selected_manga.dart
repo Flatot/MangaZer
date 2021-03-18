@@ -38,13 +38,13 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
   }
 
   loadDataScan1() async {
-    var lastViewedChapter = 0;
+    var lastViewedChapter = -1;
     final webScraper = WebScraper('https://wwv.scan-1.com');
     if (await webScraper.loadWebPage('/${widget.selectedManga["data"]}')) {
       var _resumeElement = webScraper.getElement('.well > p', []);
       _listChapters = webScraper.getElement('.chapters li > h5', []);
       _listLink = webScraper.getElement('.chapter-title-rtl a', ['href']);
-      _resume = _resumeElement[0]["title"];
+      if (_resumeElement.length > 0) _resume = _resumeElement[0]["title"];
 
       for (var i = 0; i < _listChapters.length; i++) {
         _listChapters[i]["title"] = _listChapters[i]["title"].trim();
@@ -66,16 +66,18 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
       });
       // CHECK LAST VIEWED CHAPTER
       for (var i = 0; i < _listChapters.length; i++) {
-        if (lastViewedChapter == 0 && _listChapters[i]["viewed"] != true) {
+        if (_listChapters[i]["viewed"] == true) {
           lastViewedChapter = i;
         }
       }
-      // AUTO SCROLL TO LAST VIEWED
-      _scrollController.animateTo(
-        ((lastViewedChapter * 63).toDouble()),
-        curve: Curves.easeOut,
-        duration: const Duration(milliseconds: 300),
-      );
+      if (lastViewedChapter != -1) {
+        // AUTO SCROLL TO LAST VIEWED
+        _scrollController.animateTo(
+          ((lastViewedChapter * 64 + 60).toDouble()),
+          curve: Curves.easeOut,
+          duration: const Duration(milliseconds: 300),
+        );
+      }
     }
   }
 
@@ -84,9 +86,7 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
       context,
       MaterialPageRoute(
         builder: (context) => SelectedChapterPage(
-            selectedManga: widget.selectedManga,
-            selectedChapter: _listChapters[index],
-            chapterLink: _listLink[index]),
+            selectedManga: widget.selectedManga, chapterLink: _listLink[index]),
       ),
     ).then((value) {
       if (value == true) {

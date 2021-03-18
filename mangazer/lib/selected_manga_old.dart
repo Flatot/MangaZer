@@ -45,8 +45,6 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
       _listChapters = webScraper.getElement('.chapters li > h5', []);
       _listLink = webScraper.getElement('.chapter-title-rtl a', ['href']);
 
-      print(_resume);
-
       for (var i = 0; i < _listChapters.length; i++) {
         _listChapters[i]["title"] = _listChapters[i]["title"].trim();
         _listChapters[i]["title"] =
@@ -85,9 +83,7 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
       context,
       MaterialPageRoute(
         builder: (context) => SelectedChapterPage(
-            selectedManga: widget.selectedManga,
-            selectedChapter: _listChapters[index],
-            chapterLink: _listLink[index]),
+            selectedManga: widget.selectedManga, chapterLink: _listLink[index]),
       ),
     ).then((value) {
       if (value == true) {

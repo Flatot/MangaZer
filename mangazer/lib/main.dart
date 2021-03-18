@@ -1,14 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:http/http.dart' as http;
+import 'package:mangazer/catalogue_search.dart';
+import 'package:mangazer/catalogue.dart';
 import 'package:mangazer/downloaded.dart';
 import 'package:mangazer/selected_manga.dart';
-import 'package:mangazer/settings.dart';
 import 'package:mangazer/viewed.dart';
-import 'package:splashscreen/splashscreen.dart';
 
 void main() => runApp(MyApp());
 
@@ -23,6 +20,14 @@ class MyApp extends StatelessWidget {
           primaryColorLight: Colors.green[400],
           accentColor: Colors.grey,
           brightness: Brightness.dark,
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Colors.green[700]),
+            ),
+          ),
+          outlinedButtonTheme: OutlinedButtonThemeData(
+            style: OutlinedButton.styleFrom(primary: Colors.green[700]),
+          ),
         ),
         home: CustomSplashScreen());
   }
@@ -98,72 +103,25 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   PageController _myPage = PageController(initialPage: 0);
-  TextEditingController _mangaSearch = TextEditingController();
-  dynamic mangaSelected;
-  List<dynamic> listManga = null;
-
-  _updateListManga(query) async {
-    final response = await http.get(
-      Uri.https('wwv.scan-1.com', '/search', {"query": query}),
-      headers: {
-        "Access-Control-Allow-Origin": "*", // Required for CORS support to work
-        // "Access-Control-Allow-Credentials":
-        //     true, // Required for cookies, authorization headers with HTTPS
-        "Access-Control-Allow-Headers":
-            "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
-        "Access-Control-Allow-Methods": "POST, OPTIONS"
-      },
-    );
-    if (response.statusCode == 200) {
-      setState(() {
-        listManga = json.decode(response.body)["suggestions"];
-      });
-    } else {
-      setState(() {
-        listManga = [];
-      });
-    }
-  }
-
-  _selectManga(elem) {
-    mangaSelected = elem;
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) =>
-                SelectedMangaPage(selectedManga: mangaSelected)));
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _updateListManga("");
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text(widget.title),
-      // ),
       body: PageView(
         controller: _myPage,
         onPageChanged: (int) {},
         children: <Widget>[
           ListView(
             children: [
+              CatalogueSearchPage(),
               Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Container(
-                  child: TextFormField(
-                    controller: _mangaSearch,
-                    onChanged: _updateListManga,
-                    decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.search),
-                        hintText: "Search a manga"),
-                  ),
+                padding: EdgeInsets.only(left: 8, right: 8, top: 24, bottom: 0),
+                child: Text(
+                  "En cours",
+                  style: Theme.of(context).textTheme.headline6,
                 ),
               ),
+              ViewedPage(title: "En cours"),
               Padding(
                 padding: EdgeInsets.only(left: 8, right: 8, top: 24, bottom: 0),
                 child: Text(
@@ -171,61 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   style: Theme.of(context).textTheme.headline6,
                 ),
               ),
-              listManga != null
-                  ? SizedBox(
-                      height: (MediaQuery.of(context).size.height / 4) + 50,
-                      child: ListView.builder(
-                          shrinkWrap: true,
-                          scrollDirection: Axis.horizontal,
-                          itemBuilder: (BuildContext context, int index) {
-                            return GestureDetector(
-                              onTap: () {
-                                _selectManga(listManga[index]);
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 8.0, horizontal: 4.0),
-                                child: Column(
-                                  children: [
-                                    Image.network(
-                                      "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
-                                      height:
-                                          (MediaQuery.of(context).size.height /
-                                                  4) +
-                                              30,
-                                    ),
-                                    // SizedBox(
-                                    //   height: 25,
-                                    // ),
-                                    // SizedBox(
-                                    //   width: 100,
-                                    //   child: Expanded(
-                                    //     child: Text(
-                                    //       listManga[index]["value"],
-                                    //       style: TextStyle(fontSize: 18),
-                                    //     ),
-                                    //   ),
-                                    // ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                          itemCount: listManga.length),
-                    )
-                  : Center(
-                      child: SpinKitDoubleBounce(
-                          color: Theme.of(context).primaryColor)),
-              Padding(
-                padding: EdgeInsets.only(left: 8, right: 8, top: 24, bottom: 0),
-                child: Text(
-                  "In progress",
-                  style: Theme.of(context).textTheme.headline6,
-                ),
-              ),
-              ViewedPage(
-                title: "En cours",
-              ),
+              Catalogue(),
             ],
           ),
           DownloadedPage(
@@ -260,7 +164,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         });
                       },
                     ),
-                    Text("Home")
+                    Text("Accueil")
                   ],
                 ),
               ),
@@ -306,7 +210,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         });
                       },
                     ),
-                    Text("Download")
+                    Text("Téléchargé")
                   ],
                 ),
               )
