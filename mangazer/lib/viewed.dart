@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:mangazer/selected_manga.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,11 +32,12 @@ class _ViewedPageState extends State<ViewedPage> {
 
   _selectManga(elem) {
     mangaSelected = elem;
+    var baseUrl = elem["baseUrl"] != null ? elem["baseUrl"] : "wwv.scan-1.com";
     Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) =>
-                SelectedMangaPage(selectedManga: mangaSelected)));
+            builder: (context) => SelectedMangaPage(
+                baseUrl: baseUrl, selectedManga: mangaSelected)));
   }
 
   _getListViewed() async {
@@ -56,7 +58,9 @@ class _ViewedPageState extends State<ViewedPage> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: (MediaQuery.of(context).size.height / 3) + 24,
+      height: (listManga != null && listManga.length == 0)
+          ? 0
+          : (MediaQuery.of(context).size.height / 3) + 24,
       child: ListView.builder(
           shrinkWrap: true,
           scrollDirection: Axis.horizontal,
@@ -69,9 +73,20 @@ class _ViewedPageState extends State<ViewedPage> {
                 padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
                 child: Column(
                   children: [
-                    Image.network(
-                      "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
+                    CachedNetworkImage(
+                      imageUrl:
+                          "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
                       height: MediaQuery.of(context).size.height / 3,
+                      errorWidget: (context, url, error) {
+                        listManga[index]["baseUrl"] = "www.scan-fr.cc";
+                        return CachedNetworkImage(
+                          imageUrl:
+                              "https://www.scan-fr.cc/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
+                          height: MediaQuery.of(context).size.height / 3,
+                          errorWidget: (context, url, error) =>
+                              Icon(Icons.error_outline_sharp),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -79,8 +94,6 @@ class _ViewedPageState extends State<ViewedPage> {
             );
           },
           itemCount: listManga.length),
-      //   ],
-      // ),
     );
   }
 }

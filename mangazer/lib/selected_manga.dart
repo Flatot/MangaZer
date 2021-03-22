@@ -5,14 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:mangazer/download_chapter.dart';
 import 'package:mangazer/selected_chapter.dart';
+import 'package:mangazer/selected_chapter_horizontal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:web_scraper/web_scraper.dart';
 
 class SelectedMangaPage extends StatefulWidget {
-  SelectedMangaPage({Key key, this.selectedManga}) : super(key: key);
+  SelectedMangaPage({Key key, this.selectedManga, this.baseUrl})
+      : super(key: key);
 
   final dynamic selectedManga;
+  final String baseUrl;
 
   @override
   _SelectedMangaPageState createState() => _SelectedMangaPageState();
@@ -23,12 +26,29 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
   List<Map<String, dynamic>> _listLink;
   String _resume;
   final _scrollController = ScrollController();
+  var selectedMode;
+  String baseUrl;
+
+  getModeSP(pref) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var value = prefs.get(pref);
+    return value;
+  }
+
+  getSettings() async {
+    selectedMode = await getModeSP("mode");
+    setState(() {
+      selectedMode = selectedMode;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
 
+    baseUrl = widget.baseUrl;
     loadDataScan1();
+    getSettings();
   }
 
   getSP(pref) async {
@@ -39,17 +59,25 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
 
   loadDataScan1() async {
     var lastViewedChapter = -1;
-    final webScraper = WebScraper('https://wwv.scan-1.com');
-    if (await webScraper.loadWebPage('/${widget.selectedManga["data"]}')) {
-      var _resumeElement = webScraper.getElement('.well > p', []);
-      _listChapters = webScraper.getElement('.chapters li > h5', []);
-      _listLink = webScraper.getElement('.chapter-title-rtl a', ['href']);
-      if (_resumeElement.length > 0) _resume = _resumeElement[0]["title"];
+    var webScraperUrl = "https://" + baseUrl;
+    final webScraper = WebScraper(webScraperUrl);
+    var webScraperPage = (baseUrl != "wwv.scan-1.com")
+        ? "/manga/${widget.selectedManga["data"]}"
+        : "/${widget.selectedManga["data"]}";
+    if (await webScraper.loadWebPage(webScraperPage)) {
+      if (baseUrl != "wwv.scan-1.com") {
+        _listChapters =
+            webScraper.getElement('.chapter-title-rtlrr a', ['href']);
+        _listLink = webScraper.getElement('.chapter-title-rtlrr a', ['href']);
+      } else {
+        _listChapters = webScraper.getElement('.chapters li > h5', []);
+        _listLink = webScraper.getElement('.chapter-title-rtl a', ['href']);
 
-      for (var i = 0; i < _listChapters.length; i++) {
-        _listChapters[i]["title"] = _listChapters[i]["title"].trim();
-        _listChapters[i]["title"] =
-            _listChapters[i]["title"].replaceAll("    :", ":");
+        for (var i = 0; i < _listChapters.length; i++) {
+          _listChapters[i]["title"] = _listChapters[i]["title"].trim();
+          _listChapters[i]["title"] =
+              _listChapters[i]["title"].replaceAll("    :", ":");
+        }
       }
       var listView = await getSP(widget.selectedManga["data"]);
       listView?.forEach((elem) {
@@ -82,19 +110,39 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
   }
 
   _selectChapter(index, _listChapters, _listLink) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SelectedChapterPage(
-            selectedManga: widget.selectedManga, chapterLink: _listLink[index]),
-      ),
-    ).then((value) {
-      if (value == true) {
-        setState(() {
-          _listChapters[index]["viewed"] = true;
-        });
-      }
-    });
+    if (selectedMode == 0) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SelectedChapterHorizontalPage(
+              baseUrl: baseUrl,
+              selectedManga: widget.selectedManga,
+              chapterLink: _listLink[index]),
+        ),
+      ).then((value) {
+        if (value == true) {
+          setState(() {
+            _listChapters[index]["viewed"] = true;
+          });
+        }
+      });
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SelectedChapterPage(
+              baseUrl: baseUrl,
+              selectedManga: widget.selectedManga,
+              chapterLink: _listLink[index]),
+        ),
+      ).then((value) {
+        if (value == true) {
+          setState(() {
+            _listChapters[index]["viewed"] = true;
+          });
+        }
+      });
+    }
   }
 
   setSP(String key, List<String> value) async {
@@ -202,7 +250,8 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
         builder: (context) => DownloadChapterPage(
             selectedManga: widget.selectedManga,
             selectedChapter: _listChapters[index],
-            chapterLink: _listLink[index]),
+            chapterLink: _listLink[index],
+            baseUrl: baseUrl),
       ),
     );
   }

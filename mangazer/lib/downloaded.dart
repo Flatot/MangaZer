@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:mangazer/downloaded_chapter.dart';
 import 'package:path_provider/path_provider.dart';
@@ -77,9 +78,21 @@ class _DownloadedPageState extends State<DownloadedPage> {
                             vertical: 8.0, horizontal: 4.0),
                         child: Row(
                           children: [
-                            Image.network(
-                              "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
+                            CachedNetworkImage(
+                              imageUrl:
+                                  "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
                               height: MediaQuery.of(context).size.height / 3,
+                              errorWidget: (context, url, error) {
+                                listManga[index]["baseUrl"] = "www.scan-fr.cc";
+                                return CachedNetworkImage(
+                                  imageUrl:
+                                      "https://www.scan-fr.cc/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
+                                  height:
+                                      MediaQuery.of(context).size.height / 3,
+                                  errorWidget: (context, url, error) =>
+                                      Icon(Icons.error_outline_sharp),
+                                );
+                              },
                             ),
                             SizedBox(
                               width: 25,

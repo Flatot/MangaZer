@@ -1,35 +1,46 @@
 import 'dart:async';
 
+import 'package:flare_flutter/flare_actor.dart';
 import 'package:flutter/material.dart';
 import 'package:mangazer/catalogue_search.dart';
 import 'package:mangazer/catalogue.dart';
+import 'package:mangazer/theme/config.dart';
 import 'package:mangazer/downloaded.dart';
+import 'package:mangazer/theme/mangazer_theme.dart';
 import 'package:mangazer/selected_manga.dart';
+import 'package:mangazer/settings.dart';
 import 'package:mangazer/viewed.dart';
 
 void main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  const MyApp({Key key}) : super(key: key);
+  //1
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State {
+  @override
+  void initState() {
+    super.initState();
+    currentTheme.addListener(() {
+      setState(() {
+        currentTheme;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'MangaZer',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primaryColor: Colors.green[700],
-          primaryColorLight: Colors.green[400],
-          accentColor: Colors.grey,
-          brightness: Brightness.dark,
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Colors.green[700]),
-            ),
-          ),
-          outlinedButtonTheme: OutlinedButtonThemeData(
-            style: OutlinedButton.styleFrom(primary: Colors.green[700]),
-          ),
-        ),
-        home: CustomSplashScreen());
+      title: 'MangaZer',
+      debugShowCheckedModeBanner: false,
+      theme: MangaZerTheme.lightTheme,
+      darkTheme: MangaZerTheme.darkTheme,
+      themeMode: currentTheme.currentTheme,
+      home: CustomSplashScreen(),
+    );
   }
 }
 
@@ -43,8 +54,8 @@ class CustomSplashScreen extends StatefulWidget {
 }
 
 class _CustomSplashScreenState extends State<CustomSplashScreen> {
-  final timeout = Duration(seconds: 2);
-  final ms = Duration(milliseconds: 1);
+  final timeout = Duration(seconds: 4);
+  final ms = Duration(milliseconds: 500);
 
   void handleTimeout() {
     Navigator.of(context).pushReplacement(
@@ -72,10 +83,12 @@ class _CustomSplashScreenState extends State<CustomSplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircleAvatar(
-              minRadius: 150,
-              maxRadius: 250,
-              backgroundImage: AssetImage("assets/splash_screen.png"),
+            Container(
+              height: MediaQuery.of(context).size.height / 2,
+              child: FlareActor("assets/akatsuki.flr",
+                  alignment: Alignment.center,
+                  fit: BoxFit.contain,
+                  animation: "Animate"),
             ),
             Padding(
               padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -109,7 +122,11 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       body: PageView(
         controller: _myPage,
-        onPageChanged: (int) {},
+        onPageChanged: (int i) {
+          setState(() {
+            _myPage.jumpToPage(i);
+          });
+        },
         children: <Widget>[
           ListView(
             children: [
@@ -135,85 +152,98 @@ class _MyHomePageState extends State<MyHomePage> {
           DownloadedPage(
             title: "Téléchargé",
           ),
+          SettingsPage()
         ],
       ),
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),
         child: Container(
-          height: 70,
+          height: 60,
           child: Row(
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              SizedBox(
-                height: 75,
-                width: MediaQuery.of(context).size.width / 2,
-                child: Column(
-                  children: [
-                    IconButton(
-                      iconSize: 30.0,
-                      icon: _myPage.hasClients && _myPage.page == 0
-                          ? Icon(
-                              Icons.home,
-                              color: Theme.of(context).primaryColorLight,
-                            )
-                          : Icon(Icons.home),
-                      onPressed: () {
-                        setState(() {
-                          _myPage.jumpToPage(0);
-                        });
-                      },
-                    ),
-                    Text("Accueil")
-                  ],
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _myPage.jumpToPage(0);
+                  });
+                },
+                child: SizedBox(
+                  height: 60,
+                  width: MediaQuery.of(context).size.width / 3,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.home,
+                        color: _myPage.hasClients && _myPage.page == 0
+                            ? Theme.of(context).primaryColorLight
+                            : Theme.of(context).accentColor,
+                        size: 30,
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Text("Accueil")
+                    ],
+                  ),
                 ),
               ),
-              // SizedBox(
-              //   height: 75,
-              //   width: MediaQuery.of(context).size.width / 2,
-              //   child: Column(
-              //     children: [
-              //       IconButton(
-              //         iconSize: 30.0,
-              //         icon: _myPage.hasClients && _myPage.page == 1
-              //             ? Icon(
-              //                 Icons.menu_book,
-              //                 color: Theme.of(context).primaryColorLight,
-              //               )
-              //             : Icon(Icons.menu_book),
-              //         onPressed: () {
-              //           setState(() {
-              //             _myPage.jumpToPage(1);
-              //           });
-              //         },
-              //       ),
-              //       Text("Reading")
-              //     ],
-              //   ),
-              // ),
-              SizedBox(
-                height: 75,
-                width: MediaQuery.of(context).size.width / 2,
-                child: Column(
-                  children: [
-                    IconButton(
-                      iconSize: 30.0,
-                      icon: _myPage.hasClients && _myPage.page == 1
-                          ? Icon(
-                              Icons.download_rounded,
-                              color: Theme.of(context).primaryColorLight,
-                            )
-                          : Icon(Icons.download_rounded),
-                      onPressed: () {
-                        setState(() {
-                          _myPage.jumpToPage(2);
-                        });
-                      },
-                    ),
-                    Text("Téléchargé")
-                  ],
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _myPage.jumpToPage(1);
+                  });
+                },
+                child: SizedBox(
+                  height: 60,
+                  width: MediaQuery.of(context).size.width / 3,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.download_rounded,
+                        color: _myPage.hasClients && _myPage.page == 1
+                            ? Theme.of(context).primaryColorLight
+                            : Theme.of(context).accentColor,
+                        size: 30,
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Text("Téléchargé")
+                    ],
+                  ),
                 ),
-              )
+              ),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _myPage.jumpToPage(2);
+                  });
+                },
+                child: SizedBox(
+                  height: 60,
+                  width: MediaQuery.of(context).size.width / 3,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.settings,
+                        color: _myPage.hasClients && _myPage.page == 2
+                            ? Theme.of(context).primaryColorLight
+                            : Theme.of(context).accentColor,
+                        size: 30,
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Text("Paramètres")
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),

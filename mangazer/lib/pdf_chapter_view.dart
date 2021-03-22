@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_full_pdf_viewer/full_pdf_viewer_scaffold.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:native_pdf_view/native_pdf_view.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,9 +28,11 @@ class _PdfChapterViewPageState extends State<PdfChapterViewPage> {
   }
 
   checkPermission() async {
-    if (!await Permission.storage.request().isGranted) {
-      Navigator.pop(context);
-      return;
+    if (Platform.isAndroid || Platform.isIOS) {
+      if (!await Permission.storage.request().isGranted) {
+        Navigator.pop(context);
+        return;
+      }
     }
   }
 
@@ -47,11 +50,21 @@ class _PdfChapterViewPageState extends State<PdfChapterViewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(""),
+      ),
       body: FutureBuilder(
         future: pdfFile?.exists(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return PDFViewerScaffold(path: pdfFile.path);
+            if (Platform.isAndroid || Platform.isIOS) {
+              return PDFViewerScaffold(path: pdfFile.path);
+            }
+            return PdfView(
+              controller: PdfController(
+                document: PdfDocument.openFile(pdfFile.path),
+              ),
+            );
           }
           return SpinKitDoubleBounce(
             color: Theme.of(context).primaryColor,

@@ -1,10 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:mangazer/selected_chapter.dart';
 import 'package:mangazer/selected_manga.dart';
-import 'package:rating_bar/rating_bar.dart';
 import 'package:web_scraper/web_scraper.dart';
 
 import 'package:http/http.dart' as http;
@@ -19,28 +19,34 @@ class CatalogueSearchPage extends StatefulWidget {
 class _CatalogueSearchPageState extends State<CatalogueSearchPage> {
   TextEditingController _mangaSearch = TextEditingController();
   List<dynamic> listManga = null;
+  Timer _debounce;
+  var baseUrl = "wwv.scan-1.com";
 
-  _updateListManga(query) async {
-    final response = await http.get(
-      Uri.https('wwv.scan-1.com', '/search', {"query": query}),
-      headers: {
-        "Access-Control-Allow-Origin": "*", // Required for CORS support to work
-        // "Access-Control-Allow-Credentials":
-        //     true, // Required for cookies, authorization headers with HTTPS
-        "Access-Control-Allow-Headers":
-            "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
-        "Access-Control-Allow-Methods": "POST, OPTIONS"
-      },
-    );
-    if (response.statusCode == 200) {
-      setState(() {
-        listManga = json.decode(response.body)["suggestions"];
-      });
-    } else {
-      setState(() {
-        listManga = [];
-      });
-    }
+  _updateListManga(query) {
+    if (_debounce?.isActive ?? false) _debounce.cancel();
+    _debounce = Timer(const Duration(milliseconds: 700), () async {
+      final response = await http.get(
+        Uri.https(baseUrl, '/search', {"query": query}),
+        headers: {
+          "Access-Control-Allow-Origin":
+              "*", // Required for CORS support to work
+          // "Access-Control-Allow-Credentials":
+          //     true, // Required for cookies, authorization headers with HTTPS
+          "Access-Control-Allow-Headers":
+              "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
+          "Access-Control-Allow-Methods": "POST, OPTIONS"
+        },
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          listManga = json.decode(response.body)["suggestions"];
+        });
+      } else {
+        setState(() {
+          listManga = [];
+        });
+      }
+    });
   }
 
   @override
@@ -49,9 +55,18 @@ class _CatalogueSearchPageState extends State<CatalogueSearchPage> {
     _updateListManga("");
   }
 
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
   Future<String> _loadResume(mangaRef) async {
-    final webScraper = WebScraper('https://wwv.scan-1.com');
-    if (await webScraper.loadWebPage('/${mangaRef}')) {
+    var webScraperUrl = "https://" + baseUrl;
+    final webScraper = WebScraper(webScraperUrl);
+    var webScraperPage =
+        (baseUrl != "wwv.scan-1.com") ? "/manga/${mangaRef}" : "/${mangaRef}";
+    if (await webScraper.loadWebPage(webScraperPage)) {
       var _resumeElement = webScraper.getElement('.well > p', []);
       if (_resumeElement.length > 0) {
         return _resumeElement[0]["title"];
@@ -75,7 +90,7 @@ class _CatalogueSearchPageState extends State<CatalogueSearchPage> {
             child: Row(
               children: [
                 Image.network(
-                  "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
+                  "https://${baseUrl}/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
                   height: (MediaQuery.of(context).size.height * 0.3) + 20,
                 ),
                 Flexible(
@@ -117,6 +132,7 @@ class _CatalogueSearchPageState extends State<CatalogueSearchPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => SelectedMangaPage(
+                                      baseUrl: baseUrl,
                                       selectedManga: listManga[index]),
                                 ),
                               );
@@ -148,7 +164,23 @@ class _CatalogueSearchPageState extends State<CatalogueSearchPage> {
               controller: _mangaSearch,
               onChanged: _updateListManga,
               decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.search), hintText: "Search a manga"),
+                prefixIcon: Icon(Icons.search),
+                hintText: "Rechercher un manga",
+                border: OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      if (baseUrl == "wwv.scan-1.com") {
+                        baseUrl = "www.scan-fr.cc";
+                      } else {
+                        baseUrl = "wwv.scan-1.com";
+                      }
+                    });
+                    _updateListManga(_mangaSearch.text);
+                  },
+                  icon: Icon(Icons.swap_vert_circle_sharp),
+                ),
+              ),
             ),
           ),
         ),
@@ -175,12 +207,14 @@ class _CatalogueSearchPageState extends State<CatalogueSearchPage> {
                               vertical: 8.0, horizontal: 4.0),
                           child: Column(
                             children: [
-                              Image.network(
-                                "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
-                                height:
-                                    (MediaQuery.of(context).size.height / 5) +
-                                        30,
-                              ),
+                              CachedNetworkImage(
+                                  imageUrl:
+                                      "https://${baseUrl}/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
+                                  height:
+                                      (MediaQuery.of(context).size.height / 5) +
+                                          30,
+                                  errorWidget: (context, url, error) =>
+                                      Icon(Icons.error_outline_sharp)),
                             ],
                           ),
                         ),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:mangazer/selected_chapter.dart';
+import 'package:mangazer/selected_chapter_horizontal.dart';
 import 'package:mangazer/selected_manga.dart';
 import 'package:rating_bar/rating_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_scraper/web_scraper.dart';
 
 class Catalogue extends StatefulWidget {
@@ -16,6 +18,7 @@ class _CatalogueState extends State<Catalogue> {
   List<Map<String, dynamic>> _listMangaName;
   List<Map<String, dynamic>> _listMangaStats;
   List<Map<String, dynamic>> _listMangaLastChapters;
+  var selectedMode;
 
   _getCatalogue(page) async {
     final webScraper = WebScraper('https://wwv.scan-1.com');
@@ -37,10 +40,24 @@ class _CatalogueState extends State<Catalogue> {
     }
   }
 
+  getModeSP(pref) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var value = prefs.get(pref);
+    return value;
+  }
+
+  getSettings() async {
+    selectedMode = await getModeSP("mode");
+    setState(() {
+      selectedMode = selectedMode;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _getCatalogue(1);
+    getSettings();
   }
 
   Future<String> _loadResume(mangaRef) async {
@@ -81,7 +98,7 @@ class _CatalogueState extends State<Catalogue> {
                       Flexible(
                         child: Container(
                           height:
-                              (MediaQuery.of(context).size.height * 0.4) - 40,
+                              (MediaQuery.of(context).size.height * 0.3) + 20,
                           child: Padding(
                             padding: EdgeInsets.only(left: 12),
                             child: Column(
@@ -147,21 +164,32 @@ class _CatalogueState extends State<Catalogue> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(left: 12, right: 12),
+                  padding: EdgeInsets.only(top: 12, left: 12, right: 12),
                   child: OutlinedButton(
                     onPressed: () {
                       var selectedManga = {
                         "value": _listMangaName[index]["title"],
                         "data": _listMangaName[index]["href"]
                       };
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => SelectedChapterPage(
-                              selectedManga: selectedManga,
-                              chapterLink: _listMangaLastChapters[index]),
-                        ),
-                      );
+                      if (selectedMode == 0) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SelectedChapterHorizontalPage(
+                                selectedManga: selectedManga,
+                                chapterLink: _listMangaLastChapters[index]),
+                          ),
+                        );
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SelectedChapterPage(
+                                selectedManga: selectedManga,
+                                chapterLink: _listMangaLastChapters[index]),
+                          ),
+                        );
+                      }
                     },
                     child: Text(
                         "Dernier: " + _listMangaLastChapters[index]["title"]),
