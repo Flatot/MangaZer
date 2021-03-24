@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -34,7 +33,7 @@ class DownloadChapterPage extends StatefulWidget {
 class _DownloadChapterPageState extends State<DownloadChapterPage> {
   List<String> _listPage;
   List<String> listImages = [];
-  double dlPercentage = 1;
+  double dlPercentage = 0.1;
 
   @override
   void initState() {
@@ -59,67 +58,75 @@ class _DownloadChapterPageState extends State<DownloadChapterPage> {
     var route = widget.chapterLink["attributes"]["href"];
     route = route.split("https://${widget.baseUrl}")[1];
     List<Map<String, dynamic>> strPages;
-    if (await webScraper.loadWebPage(route)) {
-      strPages = webScraper.getElement('.selectpicker', []);
-      for (var i = 0; i < strPages.length; i++) {
-        strPages[i]["title"] = strPages[i]["title"].trim();
-      }
-      setState(() {
-        _listPage = strPages[0]["title"].split(new RegExp(r"(\s)+"));
-      });
-      List<Future<String>> futuresArr = [];
-      for (var i = 0; i < _listPage.length; i++) {
-        futuresArr.add(getImage(int.parse(_listPage[i])));
-      }
-      Future.wait(futuresArr).then((value) {
-        List<Future<ByteData>> futuresBytesArr = [];
-        for (var x = 0; x < value.length; x++) {
-          if (value[x] != null) {
-            futuresBytesArr
-                .add(NetworkAssetBundle(Uri.parse(value[x])).load(value[x]));
-          }
+    webScraper.loadWebPage(route).then((value) {
+      if (value) {
+        strPages = webScraper.getElement('.selectpicker', []);
+        for (var i = 0; i < strPages.length; i++) {
+          strPages[i]["title"] = strPages[i]["title"].trim();
         }
-        Future.wait(futuresBytesArr).then((value) async {
-          for (var n = 0; n < value.length; n++) {
-            Uint8List bytes = value[n].buffer.asUint8List();
-            pdf.addPage(
-              pw.Page(
-                pageFormat: PdfPageFormat.a4,
-                build: (pw.Context context) {
-                  return pw.Center(
-                    child: pw.Image(
-                      pw.MemoryImage(bytes),
-                    ),
-                  );
-                },
-              ),
-            );
-            setState(() {
-              dlPercentage = n / _listPage.length;
-            });
-          }
-          String dir = (await getApplicationDocumentsDirectory()).path;
-          var folderName = route.split('/')[1];
-          var chapterName = route.split('/')[2];
-          if (widget.baseUrl != "wwv.scan-1.com") {
-            folderName = route.split('/')[2];
-            chapterName = route.split('/')[3];
-          }
-          Directory _appDocDirFolder = Directory('$dir/$folderName/');
-          if (!await _appDocDirFolder.exists()) {
-            //if folder not exists create folder
-            _appDocDirFolder = await _appDocDirFolder.create(recursive: true);
-          }
-          var pdfBytes = await pdf.save();
-          File file = File("${_appDocDirFolder.path}${chapterName}.pdf");
-          file = await file.writeAsBytes(pdfBytes);
-
-          if (await file.exists()) {
-            Navigator.of(context).pop();
-          }
+        setState(() {
+          _listPage = strPages[0]["title"].split(new RegExp(r"(\s)+"));
         });
-      });
-    }
+        List<Future<String>> futuresArr = [];
+        for (var i = 0; i < _listPage.length; i++) {
+          futuresArr.add(getImage(int.parse(_listPage[i])));
+        }
+        Future.wait(futuresArr).then((value) {
+          setState(() {
+            dlPercentage = 0.3;
+          });
+          List<Future<ByteData>> futuresBytesArr = [];
+          for (var x = 0; x < value.length; x++) {
+            if (value[x] != null) {
+              futuresBytesArr
+                  .add(NetworkAssetBundle(Uri.parse(value[x])).load(value[x]));
+            }
+          }
+          Future.wait(futuresBytesArr).then((value) async {
+            setState(() {
+              dlPercentage = 0.7;
+            });
+            for (var n = 0; n < value.length; n++) {
+              Uint8List bytes = value[n].buffer.asUint8List();
+              pdf.addPage(
+                pw.Page(
+                  pageFormat: PdfPageFormat.a4,
+                  build: (pw.Context context) {
+                    return pw.Center(
+                      child: pw.Image(
+                        pw.MemoryImage(bytes),
+                      ),
+                    );
+                  },
+                ),
+              );
+            }
+            setState(() {
+              dlPercentage = 0.99;
+            });
+            String dir = (await getApplicationDocumentsDirectory()).path;
+            var folderName = route.split('/')[1];
+            var chapterName = route.split('/')[2];
+            if (widget.baseUrl != "wwv.scan-1.com") {
+              folderName = route.split('/')[2];
+              chapterName = route.split('/')[3];
+            }
+            Directory _appDocDirFolder = Directory('$dir/$folderName/');
+            if (!await _appDocDirFolder.exists()) {
+              //if folder not exists create folder
+              _appDocDirFolder = await _appDocDirFolder.create(recursive: true);
+            }
+            var pdfBytes = await pdf.save();
+            File file = File("${_appDocDirFolder.path}${chapterName}.pdf");
+            file = await file.writeAsBytes(pdfBytes);
+
+            if (await file.exists()) {
+              Navigator.of(context).pop();
+            }
+          });
+        });
+      }
+    });
   }
 
   pad(int data, int limit) {

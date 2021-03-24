@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:mangazer/pdf_chapter_view.dart';
+import 'package:mangazer/view/pdf_chapter_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DownloadedChapterPage extends StatefulWidget {

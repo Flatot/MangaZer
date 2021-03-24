@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:mangazer/download_chapter.dart';
-import 'package:mangazer/selected_chapter.dart';
-import 'package:mangazer/selected_chapter_horizontal.dart';
+import 'package:mangazer/download/download_chapter.dart';
+import 'package:mangazer/view/selected_chapter.dart';
+import 'package:mangazer/view/selected_chapter_horizontal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:web_scraper/web_scraper.dart';
@@ -101,7 +101,8 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
       if (lastViewedChapter != -1) {
         // AUTO SCROLL TO LAST VIEWED
         _scrollController.animateTo(
-          ((lastViewedChapter * 64 + 60).toDouble()),
+          ((lastViewedChapter * (MediaQuery.of(context).size.height / 10))
+              .toDouble()),
           curve: Curves.easeOut,
           duration: const Duration(milliseconds: 300),
         );
@@ -234,7 +235,7 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
     listString.add(_listLink[index]["attributes"]["href"]);
     setSP(widget.selectedManga["data"], listString);
 
-    if (_listChapters[index - 1]["viewed"] != true) {
+    if (index > 0 && _listChapters[index - 1]["viewed"] != true) {
       showDialogConfirmation(index);
     } else {
       setState(() {
@@ -291,39 +292,43 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
                       ),
                     );
                   }
-                  return GestureDetector(
-                    onTap: () {
-                      _selectChapter(index, _listChapters, _listLink);
-                    },
-                    child: Padding(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-                      child: Dismissible(
-                        confirmDismiss: (direction) async {
-                          if (direction == DismissDirection.startToEnd) {
-                            _addToViewed(index);
-                            return false;
-                          } else if (direction == DismissDirection.endToStart) {
-                            return false;
-                          }
-                        },
-                        key: UniqueKey(),
-                        child: ListTile(
-                          trailing: (_listChapters[index]["viewed"] != null &&
-                                  _listChapters[index]["viewed"] == true)
-                              ? Icon(Icons.check,
-                                  color: Theme.of(context).primaryColor)
-                              : Text(""),
-                          title: Text(
-                            _listChapters[index]["title"],
-                            style: TextStyle(fontSize: 18),
-                          ),
-                          leading: IconButton(
-                            icon: Icon(Icons.download_rounded),
-                            color: Theme.of(context).primaryColor,
-                            onPressed: () {
-                              _downloadChapter(index);
-                            },
+                  return Container(
+                    height: MediaQuery.of(context).size.height / 10,
+                    child: GestureDetector(
+                      onTap: () {
+                        _selectChapter(index, _listChapters, _listLink);
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 4.0),
+                        child: Dismissible(
+                          confirmDismiss: (direction) async {
+                            if (direction == DismissDirection.startToEnd) {
+                              _addToViewed(index);
+                              return false;
+                            } else if (direction ==
+                                DismissDirection.endToStart) {
+                              return false;
+                            }
+                          },
+                          key: UniqueKey(),
+                          child: ListTile(
+                            trailing: (_listChapters[index]["viewed"] != null &&
+                                    _listChapters[index]["viewed"] == true)
+                                ? Icon(Icons.check,
+                                    color: Theme.of(context).primaryColor)
+                                : Text(""),
+                            title: Text(
+                              _listChapters[index]["title"],
+                              style: TextStyle(fontSize: 18),
+                            ),
+                            leading: IconButton(
+                              icon: Icon(Icons.download_rounded),
+                              color: Theme.of(context).primaryColor,
+                              onPressed: () {
+                                _downloadChapter(index);
+                              },
+                            ),
                           ),
                         ),
                       ),

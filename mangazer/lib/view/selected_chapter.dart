@@ -23,8 +23,11 @@ class SelectedChapterPage extends StatefulWidget {
 class _SelectedChapterPageState extends State<SelectedChapterPage> {
   List<String> _listPage;
   List<String> listImages = [];
+  PageController pageViewController = PageController();
   int currentMode = 0;
   String suffix;
+  String chapter;
+  String imgUrl;
 
   @override
   void initState() {
@@ -46,14 +49,23 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
     var route = widget.chapterLink["attributes"]["href"];
     route = route.split("https://${widget.baseUrl}")[1];
     List<Map<String, dynamic>> strPages;
+    List<Map<String, dynamic>> img;
+    // GET NB OF PAGES IN CHAPTER
     if (await webScraper.loadWebPage(route)) {
       strPages = webScraper.getElement('.selectpicker', []);
+      img = webScraper.getElement('.scan-page', ['src']);
+      imgUrl = img[0]["attributes"]["src"].toString().trim();
+      // GET CHAPTER OF THE FIRST PAGE (AJIN -> CHAPTER 16.5 => 17)
+      chapter = imgUrl.split("/")[7];
+
       for (var i = 0; i < strPages.length; i++) {
         strPages[i]["title"] = strPages[i]["title"].trim();
       }
-      setState(() {
-        _listPage = strPages[0]["title"].split(new RegExp(r"(\s)+"));
-      });
+      if (mounted) {
+        setState(() {
+          _listPage = strPages[0]["title"].split(new RegExp(r"(\s)+"));
+        });
+      }
     }
   }
 
@@ -70,41 +82,46 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
     var route = widget.chapterLink["attributes"]["href"];
     route = route.split("https://${widget.baseUrl}")[1];
     var manga = route.split("/")[1];
-    var chapter = route.split("/")[2];
+    if (chapter == null) {
+      if (widget.baseUrl != "wwv.scan-1.com") {
+        chapter = route.split("/")[3];
+      } else {
+        chapter = route.split("/")[2];
+      }
+    }
     var page = (index >= 1 && index <= 9) ? "0" + index.toString() : index;
     if (widget.baseUrl != "wwv.scan-1.com") {
       manga = route.split("/")[2];
-      chapter = route.split("/")[3];
-      // page = (index >= 1 && index <= 9) ? "0" + index.toString() : index;
-      chapter = pad(int.parse(chapter), 1000);
       page = pad(int.parse(page.toString()), 100);
     }
-
     if (suffix == null) {
-      final response = await http.head(Uri.https("${widget.baseUrl}",
-          "/uploads/manga/$manga/chapters/$chapter/$page.jpg"));
-      if (response.statusCode == 200) {
-        suffix = "jpg";
-        return "https://${widget.baseUrl}/uploads/manga/$manga/chapters/$chapter/$page.jpg";
-      } else {
-        final responsePng = await http.head(Uri.https("${widget.baseUrl}",
-            "/uploads/manga/$manga/chapters/$chapter/$page.png"));
-        if (responsePng.statusCode == 200) {
-          suffix = "png";
-          return "https://${widget.baseUrl}/uploads/manga/$manga/chapters/$chapter/$page.png";
-        } else {
-          return "none";
-        }
-      }
+      return checkAllSuffix(manga, chapter, page);
     } else {
       final responseSuffix = await http.head(Uri.https("${widget.baseUrl}",
           "/uploads/manga/$manga/chapters/$chapter/$page.$suffix"));
       if (responseSuffix.statusCode == 200) {
         return "https://${widget.baseUrl}/uploads/manga/$manga/chapters/$chapter/$page.$suffix";
       } else {
-        return "none";
+        return checkAllSuffix(manga, chapter, page);
       }
     }
+  }
+
+  checkAllSuffix(manga, chapter, page) {
+    List<Future<http.Response>> futuresArray = [];
+    ["jpg", "png", "webp"].forEach((suffix) {
+      futuresArray.add(http.head(Uri.https("${widget.baseUrl}",
+          "/uploads/manga/$manga/chapters/$chapter/$page.$suffix")));
+    });
+    return Future.wait(futuresArray).then((res) {
+      for (var i = 0; i < res.length; i++) {
+        if (res[i].statusCode == 200) {
+          suffix = ["jpg", "png", "webp"][i];
+          return "https://${widget.baseUrl}/uploads/manga/$manga/chapters/$chapter/$page.$suffix";
+        }
+      }
+      return "none";
+    });
   }
 
   getSPInt(pref) async {
@@ -133,6 +150,30 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
     return;
   }
 
+  String similarChapter(chapter) {
+    var tmp = "";
+    for (var i = 0; i < chapter.length; i++) {
+      if (chapter[i] == "0") {
+        tmp += "0";
+      }
+    }
+    tmp += (int.parse(chapter) + 1).toString();
+    return tmp;
+  }
+
+  nextChapter() async {
+    List<String> listString = await getSP(widget.selectedManga["data"]);
+    if (listString == null) listString = [];
+    listString.add(widget.chapterLink["attributes"]["href"]);
+    setSP(widget.selectedManga["data"], listString);
+    var newChapter = similarChapter(chapter);
+    setState(() {
+      chapter = newChapter;
+      pageViewController.animateTo(0,
+          duration: Duration(milliseconds: 300), curve: Curves.easeOut);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,6 +181,7 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
         children: [
           Container(
             child: PageView.builder(
+              controller: pageViewController,
               scrollDirection: Axis.vertical,
               itemCount: _listPage == null ? 0 : _listPage.length,
               itemBuilder: (context, int currentIdx) {
@@ -184,6 +226,16 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
                     onPressed: validateChapter,
                     icon: Icon(
                       Icons.check,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(right: 12),
+                  child: IconButton(
+                    onPressed: nextChapter,
+                    icon: Icon(
+                      Icons.navigate_next_rounded,
                       color: Theme.of(context).primaryColor,
                     ),
                   ),

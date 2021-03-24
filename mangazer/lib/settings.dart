@@ -83,6 +83,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   onToggle: (bool value) {
                     setState(() {
                       currentTheme.toggleTheme();
+                      setSP("theme", value == false ? 0 : 1);
                     });
                   },
                 ),

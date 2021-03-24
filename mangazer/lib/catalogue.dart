@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:mangazer/selected_chapter.dart';
-import 'package:mangazer/selected_chapter_horizontal.dart';
-import 'package:mangazer/selected_manga.dart';
+import 'package:mangazer/theme/config.dart';
+import 'package:mangazer/view/selected_chapter.dart';
+import 'package:mangazer/view/selected_chapter_horizontal.dart';
+import 'package:mangazer/view/selected_manga.dart';
+import 'package:mangazer/view/viewed.dart';
 import 'package:rating_bar/rating_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_scraper/web_scraper.dart';
 
 class Catalogue extends StatefulWidget {
-  Catalogue({Key key}) : super(key: key);
+  Catalogue({Key key, this.viewedPageKey}) : super(key: key);
+
+  GlobalKey<ViewedPageState> viewedPageKey;
 
   @override
   _CatalogueState createState() => _CatalogueState();
@@ -151,6 +155,17 @@ class _CatalogueState extends State<Catalogue> {
                                         builder: (context) => SelectedMangaPage(
                                             selectedManga: selectedManga),
                                       ),
+                                    ).then(
+                                      (value) {
+                                        mangaZerServices
+                                            .getListViewed()
+                                            .then((list) {
+                                          widget.viewedPageKey.currentState
+                                              .setState(() {
+                                            listMangaViewed = list;
+                                          });
+                                        });
+                                      },
                                     );
                                   },
                                   child: Text("Chapitres"),
@@ -179,6 +194,14 @@ class _CatalogueState extends State<Catalogue> {
                                 selectedManga: selectedManga,
                                 chapterLink: _listMangaLastChapters[index]),
                           ),
+                        ).then(
+                          (value) {
+                            mangaZerServices.getListViewed().then((list) {
+                              widget.viewedPageKey.currentState.setState(() {
+                                listMangaViewed = list;
+                              });
+                            });
+                          },
                         );
                       } else {
                         Navigator.push(
@@ -188,6 +211,14 @@ class _CatalogueState extends State<Catalogue> {
                                 selectedManga: selectedManga,
                                 chapterLink: _listMangaLastChapters[index]),
                           ),
+                        ).then(
+                          (value) {
+                            mangaZerServices.getListViewed().then((list) {
+                              widget.viewedPageKey.currentState.setState(() {
+                                listMangaViewed = list;
+                              });
+                            });
+                          },
                         );
                       }
                     },

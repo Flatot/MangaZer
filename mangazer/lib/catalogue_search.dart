@@ -1,16 +1,17 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flare_flutter/flare_actor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:mangazer/selected_manga.dart';
-import 'package:web_scraper/web_scraper.dart';
-
-import 'package:http/http.dart' as http;
+import 'package:mangazer/theme/config.dart';
+import 'package:mangazer/view/selected_manga.dart';
+import 'package:mangazer/view/viewed.dart';
 
 class CatalogueSearchPage extends StatefulWidget {
-  CatalogueSearchPage({Key key}) : super(key: key);
+  CatalogueSearchPage({Key key, this.viewedPageKey}) : super(key: key);
+
+  GlobalKey<ViewedPageState> viewedPageKey;
 
   @override
   _CatalogueSearchPageState createState() => _CatalogueSearchPageState();
@@ -25,27 +26,11 @@ class _CatalogueSearchPageState extends State<CatalogueSearchPage> {
   _updateListManga(query) {
     if (_debounce?.isActive ?? false) _debounce.cancel();
     _debounce = Timer(const Duration(milliseconds: 700), () async {
-      final response = await http.get(
-        Uri.https(baseUrl, '/search', {"query": query}),
-        headers: {
-          "Access-Control-Allow-Origin":
-              "*", // Required for CORS support to work
-          // "Access-Control-Allow-Credentials":
-          //     true, // Required for cookies, authorization headers with HTTPS
-          "Access-Control-Allow-Headers":
-              "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
-          "Access-Control-Allow-Methods": "POST, OPTIONS"
-        },
-      );
-      if (response.statusCode == 200) {
+      mangaZerServices.searchInCatalogue(baseUrl, query).then((res) {
         setState(() {
-          listManga = json.decode(response.body)["suggestions"];
+          listManga = res;
         });
-      } else {
-        setState(() {
-          listManga = [];
-        });
-      }
+      });
     });
   }
 
@@ -61,22 +46,9 @@ class _CatalogueSearchPageState extends State<CatalogueSearchPage> {
     super.dispose();
   }
 
-  Future<String> _loadResume(mangaRef) async {
-    var webScraperUrl = "https://" + baseUrl;
-    final webScraper = WebScraper(webScraperUrl);
-    var webScraperPage =
-        (baseUrl != "wwv.scan-1.com") ? "/manga/${mangaRef}" : "/${mangaRef}";
-    if (await webScraper.loadWebPage(webScraperPage)) {
-      var _resumeElement = webScraper.getElement('.well > p', []);
-      if (_resumeElement.length > 0) {
-        return _resumeElement[0]["title"];
-      }
-      return null;
-    }
-  }
-
   _showMangaDetails(index) async {
-    Future<String> resume = _loadResume(listManga[index]["data"]);
+    Future<String> resume =
+        mangaZerServices.loadResume(baseUrl, listManga[index]["data"]);
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -135,6 +107,15 @@ class _CatalogueSearchPageState extends State<CatalogueSearchPage> {
                                       baseUrl: baseUrl,
                                       selectedManga: listManga[index]),
                                 ),
+                              ).then(
+                                (value) {
+                                  mangaZerServices.getListViewed().then((list) {
+                                    widget.viewedPageKey.currentState
+                                        .setState(() {
+                                      listMangaViewed = list;
+                                    });
+                                  });
+                                },
                               );
                             },
                             child: Text("Chapitres"),
@@ -178,6 +159,9 @@ class _CatalogueSearchPageState extends State<CatalogueSearchPage> {
                     });
                     _updateListManga(_mangaSearch.text);
                   },
+                  splashColor: Colors.transparent,
+                  focusColor: Colors.transparent,
+                  hoverColor: Colors.transparent,
                   icon: Icon(Icons.swap_vert_circle_sharp),
                 ),
               ),
@@ -194,33 +178,52 @@ class _CatalogueSearchPageState extends State<CatalogueSearchPage> {
         listManga != null
             ? SizedBox(
                 height: (MediaQuery.of(context).size.height / 5) + 50,
-                child: ListView.builder(
-                    shrinkWrap: true,
-                    scrollDirection: Axis.horizontal,
-                    itemBuilder: (BuildContext context, int index) {
-                      return GestureDetector(
-                        onTap: () {
-                          _showMangaDetails(index);
-                        },
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                              vertical: 8.0, horizontal: 4.0),
-                          child: Column(
-                            children: [
-                              CachedNetworkImage(
-                                  imageUrl:
-                                      "https://${baseUrl}/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
-                                  height:
-                                      (MediaQuery.of(context).size.height / 5) +
-                                          30,
-                                  errorWidget: (context, url, error) =>
-                                      Icon(Icons.error_outline_sharp)),
-                            ],
+                child: listManga.length == 0
+                    ? Row(
+                        children: [
+                          Container(
+                            height:
+                                (MediaQuery.of(context).size.height / 5) + 50,
+                            width: (MediaQuery.of(context).size.width / 2),
+                            child: FlareActor("assets/akatsuki.flr",
+                                alignment: Alignment.center,
+                                fit: BoxFit.contain,
+                                animation: "Animate"),
                           ),
-                        ),
-                      );
-                    },
-                    itemCount: listManga.length),
+                          Text(
+                            "Aucun résultat",
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ],
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (BuildContext context, int index) {
+                          return GestureDetector(
+                            onTap: () {
+                              _showMangaDetails(index);
+                            },
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 4.0),
+                              child: Column(
+                                children: [
+                                  CachedNetworkImage(
+                                      imageUrl:
+                                          "https://${baseUrl}/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
+                                      height:
+                                          (MediaQuery.of(context).size.height /
+                                                  5) +
+                                              30,
+                                      errorWidget: (context, url, error) =>
+                                          Icon(Icons.error_outline_sharp)),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        itemCount: listManga.length),
               )
             : Center(
                 child:
