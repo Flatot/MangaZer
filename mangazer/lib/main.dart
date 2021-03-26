@@ -83,6 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       child: Scaffold(
         body: PageView(
+          physics: NeverScrollableScrollPhysics(),
           controller: _myPage,
           onPageChanged: (int i) {
             setState(() {
