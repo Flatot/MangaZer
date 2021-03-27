@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:mangazer/theme/config.dart';
+import 'package:mangazer/view/card_scroll_widget.dart';
 import 'package:mangazer/view/selected_chapter.dart';
 import 'package:mangazer/view/selected_chapter_horizontal.dart';
 import 'package:mangazer/view/selected_manga.dart';
@@ -12,16 +13,21 @@ import 'package:web_scraper/web_scraper.dart';
 class Catalogue extends StatefulWidget {
   Catalogue({Key key, this.viewedPageKey}) : super(key: key);
 
-  GlobalKey<ViewedPageState> viewedPageKey;
+  final GlobalKey<ViewedPageState> viewedPageKey;
 
   @override
   _CatalogueState createState() => _CatalogueState();
 }
 
+var cardAspectRatio = 12.0 / 16.0;
+var widgetAspectRatio = cardAspectRatio * 1.2;
+
 class _CatalogueState extends State<Catalogue> {
   List<Map<String, dynamic>> _listMangaName;
   List<Map<String, dynamic>> _listMangaStats;
   List<Map<String, dynamic>> _listMangaLastChapters;
+  PageController _controller;
+  double currentPage;
   var selectedMode;
 
   _getCatalogue(page) async {
@@ -40,6 +46,11 @@ class _CatalogueState extends State<Catalogue> {
             .getElement('.col-sm-6 > .media > .media-body > span', []);
         _listMangaLastChapters = webScraper
             .getElement('.col-sm-6 > .media > .media-body > div > a', ["href"]);
+        _listMangaName = _listMangaName.reversed.toList();
+        _listMangaStats = _listMangaStats.reversed.toList();
+        _listMangaLastChapters = _listMangaLastChapters.reversed.toList();
+        _controller = PageController(initialPage: _listMangaName.length - 1);
+        currentPage = _listMangaName.length - 1.0;
       });
     }
   }
@@ -153,6 +164,7 @@ class _CatalogueState extends State<Catalogue> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => SelectedMangaPage(
+                                            baseUrl: "wwv.scan-1.com",
                                             selectedManga: selectedManga),
                                       ),
                                     ).then(
@@ -191,6 +203,7 @@ class _CatalogueState extends State<Catalogue> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => SelectedChapterHorizontalPage(
+                                baseUrl: "wwv.scan-1.com",
                                 selectedManga: selectedManga,
                                 chapterLink: _listMangaLastChapters[index]),
                           ),
@@ -208,6 +221,7 @@ class _CatalogueState extends State<Catalogue> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => SelectedChapterPage(
+                                baseUrl: "wwv.scan-1.com",
                                 selectedManga: selectedManga,
                                 chapterLink: _listMangaLastChapters[index]),
                           ),
@@ -236,6 +250,39 @@ class _CatalogueState extends State<Catalogue> {
 
   @override
   Widget build(BuildContext context) {
+    if (_controller != null) {
+      _controller.addListener(() {
+        if (_controller.page != null) {
+          setState(() {
+            currentPage = _controller.page;
+          });
+        }
+      });
+    }
+    return currentPage != null
+        ? GestureDetector(
+            onTap: () {
+              _showMangaDetails(currentPage.toInt());
+            },
+            child: Stack(
+              children: <Widget>[
+                CardScrollWidget(currentPage, widgetAspectRatio,
+                    cardAspectRatio, _listMangaName),
+                Positioned.fill(
+                  child: PageView.builder(
+                    itemCount: _listMangaName.length,
+                    controller: _controller,
+                    reverse: true,
+                    itemBuilder: (context, index) {
+                      return Container();
+                    },
+                  ),
+                )
+              ],
+            ),
+          )
+        : Center(
+            child: SpinKitDoubleBounce(color: Theme.of(context).primaryColor));
     return _listMangaName != null
         ? SizedBox(
             height: (MediaQuery.of(context).size.height / 5) + 50,

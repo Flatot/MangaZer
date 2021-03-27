@@ -47,6 +47,7 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
     super.initState();
 
     baseUrl = widget.baseUrl;
+    print(baseUrl);
     loadDataScan1();
     getSettings();
   }
