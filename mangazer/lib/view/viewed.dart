@@ -29,7 +29,7 @@ class ViewedPageState extends State<ViewedPage> {
 
   _selectManga(elem) {
     mangaSelected = elem;
-    var baseUrl = elem["baseUrl"] != null ? elem["baseUrl"] : "wwv.scan-1.com";
+    var baseUrl = elem["baseUrl"] != null ? elem["baseUrl"] : "www.scan-1.net";
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -151,7 +151,7 @@ class ViewedPageState extends State<ViewedPage> {
                   children: [
                     CachedNetworkImage(
                       imageUrl:
-                          "https://wwv.scan-1.com/uploads/manga/${listMangaViewed[index]["data"]}/cover/cover_250x350.jpg",
+                          "https://www.scan-1.net/uploads/manga/${listMangaViewed[index]["data"]}/cover/cover_250x350.jpg",
                       height: MediaQuery.of(context).size.height / 3,
                       errorWidget: (context, url, error) {
                         listMangaViewed[index]["baseUrl"] = "www.scan-fr.cc";

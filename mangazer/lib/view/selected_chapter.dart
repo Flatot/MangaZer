@@ -47,7 +47,7 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
   loadChapterData() async {
     final webScraper = WebScraper('https://${widget.baseUrl}');
     var route = widget.chapterLink["attributes"]["href"];
-    route = route.split("https://${widget.baseUrl}")[1];
+    route = route.split("${widget.baseUrl.startsWith("https://") ? "https://" : ""}${widget.baseUrl}")[1];
     List<Map<String, dynamic>> strPages;
     List<Map<String, dynamic>> img;
     // GET NB OF PAGES IN CHAPTER
@@ -83,14 +83,14 @@ class _SelectedChapterPageState extends State<SelectedChapterPage> {
     route = route.split("https://${widget.baseUrl}")[1];
     var manga = route.split("/")[1];
     if (chapter == null) {
-      if (widget.baseUrl != "wwv.scan-1.com") {
+      if (widget.baseUrl != "www.scan-1.net") {
         chapter = route.split("/")[3];
       } else {
         chapter = route.split("/")[2];
       }
     }
     var page = (index >= 1 && index <= 9) ? "0" + index.toString() : index;
-    if (widget.baseUrl != "wwv.scan-1.com") {
+    if (widget.baseUrl != "www.scan-1.net") {
       manga = route.split("/")[2];
       page = pad(int.parse(page.toString()), 100);
     }

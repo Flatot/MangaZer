@@ -23,6 +23,10 @@ class _MyAppState extends State {
   getSettings() async {
     var theme = await getSP("theme");
     currentTheme.setTheme((theme != null && theme == 0) ? false : true);
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getKeys();
+
   }
 
   getSP(pref) async {

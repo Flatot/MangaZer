@@ -47,7 +47,6 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
     super.initState();
 
     baseUrl = widget.baseUrl;
-    print(baseUrl);
     loadDataScan1();
     getSettings();
   }
@@ -62,11 +61,11 @@ class _SelectedMangaPageState extends State<SelectedMangaPage> {
     var lastViewedChapter = -1;
     var webScraperUrl = "https://" + baseUrl;
     final webScraper = WebScraper(webScraperUrl);
-    var webScraperPage = (baseUrl != "wwv.scan-1.com")
+    var webScraperPage = (baseUrl != "www.scan-1.net")
         ? "/manga/${widget.selectedManga["data"]}"
         : "/${widget.selectedManga["data"]}";
     if (await webScraper.loadWebPage(webScraperPage)) {
-      if (baseUrl != "wwv.scan-1.com") {
+      if (baseUrl != "www.scan-1.net") {
         _listChapters =
             webScraper.getElement('.chapter-title-rtlrr a', ['href']);
         _listLink = webScraper.getElement('.chapter-title-rtlrr a', ['href']);

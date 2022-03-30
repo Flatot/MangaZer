@@ -107,7 +107,7 @@ class _DownloadChapterPageState extends State<DownloadChapterPage> {
             String dir = (await getApplicationDocumentsDirectory()).path;
             var folderName = route.split('/')[1];
             var chapterName = route.split('/')[2];
-            if (widget.baseUrl != "wwv.scan-1.com") {
+            if (widget.baseUrl != "www.scan-1.net") {
               folderName = route.split('/')[2];
               chapterName = route.split('/')[3];
             }
@@ -145,7 +145,7 @@ class _DownloadChapterPageState extends State<DownloadChapterPage> {
     var chapter = route.split("/")[2];
     var currentPage = (page >= 1 && page <= 9) ? "0" + page.toString() : page;
 
-    if (widget.baseUrl != "wwv.scan-1.com") {
+    if (widget.baseUrl != "www.scan-1.net") {
       manga = route.split("/")[2];
       chapter = route.split("/")[3];
       chapter = pad(int.parse(chapter), 1000);

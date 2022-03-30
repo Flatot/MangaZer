@@ -80,7 +80,7 @@ class _DownloadedPageState extends State<DownloadedPage> {
                           children: [
                             CachedNetworkImage(
                               imageUrl:
-                                  "https://wwv.scan-1.com/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
+                                  "https://www.scan-1.net/uploads/manga/${listManga[index]["data"]}/cover/cover_250x350.jpg",
                               height: MediaQuery.of(context).size.height / 3,
                               errorWidget: (context, url, error) {
                                 listManga[index]["baseUrl"] = "www.scan-fr.cc";

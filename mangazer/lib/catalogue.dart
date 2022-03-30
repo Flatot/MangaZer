@@ -31,7 +31,7 @@ class _CatalogueState extends State<Catalogue> {
   var selectedMode;
 
   _getCatalogue(page) async {
-    final webScraper = WebScraper('https://wwv.scan-1.com');
+    final webScraper = WebScraper('https://www.scan-1.net');
     if (await webScraper.loadWebPage(
         '/filterList?page=$page&cat=&alpha=&sortBy=views&asc=false&author=&artist=&tag=')) {
       setState(() {
@@ -76,7 +76,7 @@ class _CatalogueState extends State<Catalogue> {
   }
 
   Future<String> _loadResume(mangaRef) async {
-    final webScraper = WebScraper('https://wwv.scan-1.com');
+    final webScraper = WebScraper('https://www.scan-1.net');
     if (await webScraper.loadWebPage('/${mangaRef}')) {
       var _resumeElement = webScraper.getElement('.well > p', []);
       if (_resumeElement.length > 0) {
@@ -107,7 +107,7 @@ class _CatalogueState extends State<Catalogue> {
                   child: Row(
                     children: [
                       Image.network(
-                        "https://wwv.scan-1.com/uploads/manga/${_listMangaName[index]["href"]}/cover/cover_250x350.jpg",
+                        "https://www.scan-1.net/uploads/manga/${_listMangaName[index]["href"]}/cover/cover_250x350.jpg",
                         height: (MediaQuery.of(context).size.height * 0.3) + 20,
                       ),
                       Flexible(
@@ -164,7 +164,7 @@ class _CatalogueState extends State<Catalogue> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => SelectedMangaPage(
-                                            baseUrl: "wwv.scan-1.com",
+                                            baseUrl: "www.scan-1.net",
                                             selectedManga: selectedManga),
                                       ),
                                     ).then(
@@ -203,7 +203,7 @@ class _CatalogueState extends State<Catalogue> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => SelectedChapterHorizontalPage(
-                                baseUrl: "wwv.scan-1.com",
+                                baseUrl: "www.scan-1.net",
                                 selectedManga: selectedManga,
                                 chapterLink: _listMangaLastChapters[index]),
                           ),
@@ -221,7 +221,7 @@ class _CatalogueState extends State<Catalogue> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => SelectedChapterPage(
-                                baseUrl: "wwv.scan-1.com",
+                                baseUrl: "www.scan-1.net",
                                 selectedManga: selectedManga,
                                 chapterLink: _listMangaLastChapters[index]),
                           ),
@@ -300,7 +300,7 @@ class _CatalogueState extends State<Catalogue> {
                       child: Column(
                         children: [
                           Image.network(
-                            "https://wwv.scan-1.com/uploads/manga/${_listMangaName[index]["href"]}/cover/cover_250x350.jpg",
+                            "https://www.scan-1.net/uploads/manga/${_listMangaName[index]["href"]}/cover/cover_250x350.jpg",
                             height:
                                 (MediaQuery.of(context).size.height / 5) + 30,
                           ),

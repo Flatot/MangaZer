@@ -10,7 +10,7 @@ class MangaZerServices {
     var webScraperUrl = "https://" + baseUrl;
     final webScraper = WebScraper(webScraperUrl);
     var webScraperPage =
-        (baseUrl != "wwv.scan-1.com") ? "/manga/${mangaRef}" : "/${mangaRef}";
+        (baseUrl != "www.scan-1.net") ? "/manga/${mangaRef}" : "/${mangaRef}";
     webScraper.loadWebPage(webScraperPage).then((value) {
       if (value) {
         var _resumeElement = webScraper.getElement('.well > p', []);

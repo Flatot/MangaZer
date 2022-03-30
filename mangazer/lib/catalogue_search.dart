@@ -21,7 +21,7 @@ class _CatalogueSearchPageState extends State<CatalogueSearchPage> {
   TextEditingController _mangaSearch = TextEditingController();
   List<dynamic> listManga = null;
   Timer _debounce;
-  var baseUrl = "wwv.scan-1.com";
+  var baseUrl = "www.scan-1.net";
 
   _updateListManga(query) {
     if (_debounce?.isActive ?? false) _debounce.cancel();
@@ -151,10 +151,10 @@ class _CatalogueSearchPageState extends State<CatalogueSearchPage> {
                 suffixIcon: IconButton(
                   onPressed: () {
                     setState(() {
-                      if (baseUrl == "wwv.scan-1.com") {
+                      if (baseUrl == "www.scan-1.net") {
                         baseUrl = "www.scan-fr.cc";
                       } else {
-                        baseUrl = "wwv.scan-1.com";
+                        baseUrl = "www.scan-1.net";
                       }
                     });
                     _updateListManga(_mangaSearch.text);

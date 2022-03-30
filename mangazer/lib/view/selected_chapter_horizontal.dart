@@ -76,7 +76,7 @@ class _SelectedChapterHorizontalPageState
     var page = (_selectedPage >= 1 && _selectedPage <= 9)
         ? "0" + _selectedPage.toString()
         : _selectedPage;
-    if (widget.baseUrl != "wwv.scan-1.com") {
+    if (widget.baseUrl != "www.scan-1.net") {
       manga = route.split("/")[2];
       chapter = route.split("/")[3];
       // page = (index >= 1 && index <= 9) ? "0" + index.toString() : index;

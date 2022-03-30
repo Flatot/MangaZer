@@ -49,17 +49,17 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: EdgeInsets.only(top: 12),
+        padding: EdgeInsets.only(top: 48),
         child: SettingsList(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          // backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           sections: [
             SettingsSection(
-              title: 'Mode de lecture',
+              title: Text('Mode de lecture'),
               tiles: [
                 SettingsTile.switchTile(
-                  title: modeArr[selectedMode],
+                  initialValue: selectedMode == 0 ? false : true,
+                  title: Text(modeArr[selectedMode]),
                   leading: Icon(Icons.menu_book_sharp),
-                  switchValue: selectedMode == 0 ? false : true,
                   onToggle: (bool value) {
                     setState(() {
                       selectedMode = value == false ? 0 : 1;
@@ -70,16 +70,17 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
             SettingsSection(
-              title: 'Thèmes',
+              title: Text('Thèmes'),
               tiles: [
                 SettingsTile.switchTile(
+                  initialValue: currentTheme.currentTheme == ThemeMode.light ? false : true,
                   title: currentTheme.currentTheme == ThemeMode.light
-                      ? "Mode clair"
-                      : "Mode sombre",
+                      ? Text("Mode clair")
+                      : Text("Mode sombre"),
                   leading: Icon(Icons.brightness_4),
-                  switchValue: currentTheme.currentTheme == ThemeMode.light
-                      ? false
-                      : true,
+                  // switchValue: currentTheme.currentTheme == ThemeMode.light
+                  //     ? false
+                  //     : true,
                   onToggle: (bool value) {
                     setState(() {
                       currentTheme.toggleTheme();

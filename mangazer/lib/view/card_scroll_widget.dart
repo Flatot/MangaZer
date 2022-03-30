@@ -67,7 +67,7 @@ class _CardScrollWidgetState extends State<CardScrollWidget> {
                   ],
                 ),
                 child: Image.network(
-                  "https://wwv.scan-1.com/uploads/manga/${widget._listMangaName[i]["href"]}/cover/cover_250x350.jpg",
+                  "https://www.scan-1.net/uploads/manga/${widget._listMangaName[i]["href"]}/cover/cover_250x350.jpg",
                 ),
               ),
             ),
